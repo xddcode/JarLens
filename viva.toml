@@ -1,0 +1,21 @@
+[app]
+name = "JarLens"
+id = "io.github.xddcode.jarlens"
+version = "0.1.0"
+executable = "jarlens"
+package = "./cmd/jarlens"
+
+[build]
+out = "build/dist"
+
+[mac]
+category = "public.app-category.developer-tools"
+copyright = "JarLens contributors"
+
+[windows]
+publisher = "JarLens contributors"
+
+[linux]
+category = "Development"
+comment = "Native Java decompiler and code explorer"
+keywords = ["java", "decompiler", "bytecode", "jar"]

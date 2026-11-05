@@ -1,0 +1,47 @@
+name: Bug report
+description: Report a reproducible defect in JarLens
+title: "fix: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not attach credentials, proprietary archives, or private source code.
+  - type: input
+    id: version
+    attributes:
+      label: Commit or release
+      placeholder: main commit SHA or v0.1.0
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and architecture
+      placeholder: Windows 11 amd64
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest complete scenario.
+      placeholder: "1. Open...\n2. Select...\n3. Observe..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and diagnostics
+    validations:
+      required: true
+  - type: input
+    id: fixture
+    attributes:
+      label: Redistributable fixture source
+      description: Link or describe a minimal fixture that can legally be shared.

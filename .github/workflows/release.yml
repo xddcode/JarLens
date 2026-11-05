@@ -1,0 +1,146 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate version and annotated notes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check tag, version, and notes
+        run: |
+          version=$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' viva.toml | head -1)
+          notes="docs/releases/$version.md"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match viva.toml version $version"
+            exit 1
+          fi
+          if [ ! -f "$notes" ]; then
+            echo "::error::$notes is missing"
+            exit 1
+          fi
+          git for-each-ref --format='%(contents)' "refs/tags/$GITHUB_REF_NAME" > "$RUNNER_TEMP/tag-notes.md"
+          python3 - "$notes" "$RUNNER_TEMP/tag-notes.md" <<'EOF'
+          import sys
+
+          def normalized(path):
+              with open(path, encoding="utf-8") as source:
+                  return "\n".join(source.read().splitlines()).strip() + "\n"
+
+          if normalized(sys.argv[1]) != normalized(sys.argv[2]):
+              raise SystemExit("annotated tag message does not match committed release notes")
+          EOF
+
+  package:
+    name: Package ${{ matrix.target }} ${{ matrix.arch }}
+    needs: validate
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, target: windows, arch: amd64, format: zip }
+          - { os: windows-latest, target: windows, arch: arm64, format: zip }
+          - { os: macos-15, target: darwin, arch: amd64, format: zip }
+          - { os: macos-15, target: darwin, arch: arm64, format: zip }
+          - { os: ubuntu-24.04, target: linux, arch: amd64, format: tar.gz }
+          - { os: ubuntu-24.04, target: linux, arch: arm64, format: tar.gz }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: Test before packaging
+        run: go test ./... -count=1
+      - name: Package without claiming a signature
+        shell: bash
+        run: |
+          go tool viva package --target "${{ matrix.target }}" --arch "${{ matrix.arch }}" \
+            --format "${{ matrix.format }}" --no-sign --out "$RUNNER_TEMP/package"
+          version=$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' viva.toml | head -1)
+          src=$(find "$RUNNER_TEMP/package" -maxdepth 1 -type f)
+          if [ -z "$src" ] || [ "$(printf '%s\n' "$src" | wc -l)" -ne 1 ]; then
+            echo "::error::expected exactly one package, found: $src"
+            exit 1
+          fi
+          case "$src" in
+            *.tar.gz) extension=tar.gz ;;
+            *) extension=${src##*.} ;;
+          esac
+          mkdir -p "$RUNNER_TEMP/upload"
+          destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}.$extension"
+          mv "$src" "$destination"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.target }}-${{ matrix.arch }}
+          path: ${{ runner.temp }}/upload/*
+          if-no-files-found: error
+
+  publish:
+    name: Verify and publish GitHub Release
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: package-*
+          path: ${{ runner.temp }}/release
+          merge-multiple: true
+      - name: Add notices and source dependency SBOM
+        run: |
+          cp LICENSE NOTICE THIRD_PARTY_NOTICES.md "$RUNNER_TEMP/release/"
+      - uses: anchore/sbom-action@v0
+        with:
+          path: ./
+          format: cyclonedx-json
+          output-file: ${{ runner.temp }}/release/jarlens-sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - name: Checksum the complete artifact set
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/release"
+          sha256sum -- * > SHA256SUMS
+          sha256sum -c SHA256SUMS
+      - name: Create draft and upload artifacts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' viva.toml | head -1)
+          gh release create "$GITHUB_REF_NAME" --draft --title "JarLens $GITHUB_REF_NAME" \
+            --notes-file "docs/releases/$version.md"
+          cd "$RUNNER_TEMP/release"
+          gh release upload "$GITHUB_REF_NAME" *
+      - name: Verify remote assets before publication
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd "$RUNNER_TEMP/release"
+          find . -maxdepth 1 -type f -printf '%f\n' | sort > "$RUNNER_TEMP/expected-assets"
+          gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name' | sort > "$RUNNER_TEMP/actual-assets"
+          diff -u "$RUNNER_TEMP/expected-assets" "$RUNNER_TEMP/actual-assets"
+      - name: Publish the verified release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$GITHUB_REF_NAME" --draft=false --latest

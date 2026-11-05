@@ -1,0 +1,40 @@
+name: Decompiler compatibility
+description: Report incorrect, missing, or failed decompilation
+title: "engine: "
+labels: [compatibility]
+body:
+  - type: input
+    id: engine
+    attributes:
+      label: Engine and version
+    validations:
+      required: true
+  - type: input
+    id: classfile
+    attributes:
+      label: Java/class-file version
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Minimal redistributable Java source or bytecode
+      description: Do not attach proprietary or unknown-origin artifacts.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected source or behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual output and diagnostics
+    validations:
+      required: true
+  - type: input
+    id: otherengines
+    attributes:
+      label: Comparison with another engine, if available

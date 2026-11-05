@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and design discussion
+    url: https://github.com/xddcode/jarlens/discussions
+    about: Use GitHub Discussions for open-ended questions and proposals.
+  - name: Security reports
+    url: https://github.com/xddcode/jarlens/security/advisories/new
+    about: Report vulnerabilities privately; do not open a public issue.
