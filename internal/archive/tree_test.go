@@ -26,11 +26,47 @@ func TestTreeIsSortedAndLazy(t *testing.T) {
 	}
 	example := visible[1].Node
 	visible = tree.Visible(map[int]bool{com.ID: true, example.ID: true})
-	if len(visible) != 6 || visible[2].Node.Name != "Hello" || visible[3].Node.Name != "World" {
+	if len(visible) != 6 || visible[2].Node.Name != "Hello.class" || visible[3].Node.Name != "World.class" {
 		t.Fatalf("expanded classes are wrong: %+v", visible)
 	}
 	if visible[2].Node.Entry != 1 || visible[3].Node.Entry != 2 {
 		t.Fatal("tree nodes lost their archive entry identities")
+	}
+}
+
+func TestTreeGroupsNestedClasses(t *testing.T) {
+	tree := BuildTree([]Entry{
+		{ID: 0, Path: "example/Outer.class", Name: "Outer.class", Kind: EntryClass},
+		{ID: 1, Path: "example/Outer$Inner.class", Name: "Outer$Inner.class", Kind: EntryClass},
+		{ID: 2, Path: "example/Outer$Inner$Deep.class", Name: "Outer$Inner$Deep.class", Kind: EntryClass},
+		{ID: 3, Path: "example/Orphan$Inner.class", Name: "Orphan$Inner.class", Kind: EntryClass},
+	})
+	byPath := make(map[string]Node)
+	for _, node := range tree.Nodes {
+		byPath[node.Path] = node
+	}
+	outer := byPath["example/Outer.class"]
+	inner := byPath["example/Outer$Inner.class"]
+	deep := byPath["example/Outer$Inner$Deep.class"]
+	orphan := byPath["example/Orphan$Inner.class"]
+	if inner.Parent != outer.ID || inner.Name != "Inner.class" || inner.Entry != 1 {
+		t.Fatalf("inner class was not grouped under its outer class: %+v", inner)
+	}
+	if deep.Parent != inner.ID || deep.Name != "Deep.class" || deep.Entry != 2 {
+		t.Fatalf("deep class was not grouped under its immediate class: %+v", deep)
+	}
+	if orphan.Parent == orphan.ID || orphan.Name != "Orphan$Inner.class" || orphan.Entry != 3 {
+		t.Fatalf("orphan class was given a synthetic parent: %+v", orphan)
+	}
+	visible := tree.Visible(map[int]bool{outer.ID: true, outer.Parent: true})
+	foundInner := false
+	for _, item := range visible {
+		if item.Node.ID == inner.ID && item.Depth == 2 {
+			foundInner = true
+		}
+	}
+	if !foundInner {
+		t.Fatalf("expanded outer class does not reveal its inner class: outer=%+v visible=%+v", outer, visible)
 	}
 }
 

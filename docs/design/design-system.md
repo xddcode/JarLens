@@ -52,8 +52,20 @@ Java classes—to make the tree scannable. Color supports recognition but never
 replaces labels, selection state, or accessible text.
 
 - The activity stripe exposes real tool windows only; no decorative dead buttons.
-- The project window contains the lazy archive/package/class hierarchy.
-- The editor owns tabs, breadcrumbs, source, diagnostics, search, and diff.
+- The project window contains the lazy archive/package/class hierarchy. Class
+  nodes and editor tabs retain the real `.class` suffix. Selected rows use a
+  4-pixel radius and 4-pixel horizontal inset, and selection is not overwritten
+  by hover. Nested `Outer$Inner.class` entries are grouped under `Outer.class`
+  while retaining their real entry identity. The disclosure control expands the
+  group. Selecting a nested class opens its outermost class document and locates
+  the nested declaration instead of creating another tab.
+- The editor owns multiple independent document tabs, breadcrumbs, source,
+  diagnostics, search, and diff. Repeatedly opening a class activates its existing
+  tab; each tab retains its editor and scroll state. The current tab can be closed
+  directly or with the primary shortcut+W.
+- Text resources open in the same document workspace with their original filename,
+  language-aware presentation, and export suffix. Binary resources are rejected
+  with a diagnostic rather than sent to a decompiler.
 - Bottom and right tool windows remain hidden until they have useful content.
 - Panels are resizable and keyboard accessible when those interactions land.
 

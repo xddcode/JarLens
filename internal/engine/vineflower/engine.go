@@ -70,13 +70,21 @@ func (e *Engine) Decompile(ctx context.Context, request decompile.Request) (deco
 		base = "Input"
 	}
 	input := filepath.Join(inputDir, base+".class")
-	if err := os.WriteFile(input, request.Data, 0o600); err != nil {
-		return decompile.Result{}, err
-	}
-
+	archiveInput := request.ArchivePath != "" && strings.EqualFold(filepath.Ext(request.ArchivePath), ".jar")
 	args := []string{"-jar", e.jarPath, "--silent", "--folder", "--thread-count=1", "--include-runtime=current"}
-	if request.ArchivePath != "" {
-		args = append(args, "--add-external="+request.ArchivePath)
+	if archiveInput {
+		input = request.ArchivePath
+		if err := os.MkdirAll(filepath.Join(outputDir, filepath.Dir(request.ClassName)), 0o700); err != nil {
+			return decompile.Result{}, err
+		}
+		args = append(args, "--only="+strings.TrimSuffix(request.ClassName, filepath.Ext(request.ClassName)))
+	} else {
+		if err := os.WriteFile(input, request.Data, 0o600); err != nil {
+			return decompile.Result{}, err
+		}
+		if request.ArchivePath != "" {
+			args = append(args, "--add-external="+request.ArchivePath)
+		}
 	}
 	args = append(args, input, outputDir)
 	command := exec.CommandContext(ctx, e.java, args...)
@@ -95,7 +103,10 @@ func (e *Engine) Decompile(ctx context.Context, request decompile.Request) (deco
 		return decompile.Result{}, fmt.Errorf("%w: %s", decompile.ErrEngineFailed, message)
 	}
 
-	output := filepath.Join(outputDir, base+".java")
+	output, err := findSource(outputDir, base+".java")
+	if err != nil {
+		return decompile.Result{}, fmt.Errorf("%w: %v", decompile.ErrEngineFailed, err)
+	}
 	info, err := os.Stat(output)
 	if err != nil {
 		return decompile.Result{}, fmt.Errorf("%w: %v", decompile.ErrEngineFailed, err)
@@ -142,6 +153,26 @@ func (e *Engine) Close() error {
 		return nil
 	}
 	return os.RemoveAll(e.cacheDir)
+}
+
+func findSource(root, name string) (string, error) {
+	var matches []string
+	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !entry.IsDir() && entry.Name() == name {
+			matches = append(matches, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	if len(matches) != 1 {
+		return "", fmt.Errorf("expected one %s output, found %d", name, len(matches))
+	}
+	return matches[0], nil
 }
 
 type limitedBuffer struct {

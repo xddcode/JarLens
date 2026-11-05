@@ -11,6 +11,12 @@ public class Hello {
         return "Hello, " + name + "!";
     }
 
+    static class Nested {
+        String value() {
+            return "nested";
+        }
+    }
+
     public static void main(String[] args) {
         System.out.println(new Hello("JarLens").greeting());
     }

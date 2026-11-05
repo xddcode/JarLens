@@ -26,6 +26,9 @@ var (
 	sourceScrollbar           = tree.ID(workbench, "source-scrollbar")
 	sourceHorizontalScrollbar = tree.ID(workbench, "source-horizontal-scrollbar")
 	projectNodes              = tree.Sub(workbench, tree.Name("project-nodes"))
+	projectDisclosures        = tree.Sub(workbench, tree.Name("project-disclosures"))
+	editorTabs                = tree.Sub(workbench, tree.Name("editor-tabs"))
+	tabClose                  = tree.ID(workbench, "tab-close")
 )
 
 func NewConfig(m *Model) app.Config {
@@ -77,6 +80,9 @@ func NewConfig(m *Model) app.Config {
 				return vivaui.EventResult{Handled: true}
 			case "s":
 				m.saveSource()
+				return vivaui.EventResult{Handled: true}
+			case "w":
+				m.closeActiveDocument()
 				return vivaui.EventResult{Handled: true}
 			default:
 				return vivaui.EventResult{}
@@ -136,6 +142,10 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 	leading, trailing := app.TitlebarInsets()
 	var sourceSlot flex.Box
 	var splitterSlot flex.Box
+	loading := m.busy && m.workspace == nil
+	if doc := m.currentDocument(); doc != nil && doc.loading {
+		loading = true
+	}
 
 	m.view.Draw(canvas, theme, bounds, func(f *flex.Frame) {
 		f.Column().Fill().Background(theme.Card).Children(func() {
@@ -185,7 +195,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 					m.paintEditorHeader(f, theme)
 					f.Divider()
 					switch {
-					case m.busy:
+					case loading:
 						f.Column().Grow(1).Center().Gap(12).Children(func() {
 							f.Spinner()
 							f.Text(status).FontSize(13).Muted()
@@ -255,34 +265,55 @@ func (m *Model) paintProjectNode(f *flex.Frame, theme vivaui.Theme, visible arch
 	node := visible.Node
 	label := node.Name
 	id := projectNodes.At(node.ID)
-	row := f.Row().Height(24).PadSides(0, 4, 0, 8+float32(visible.Depth)*12).Gap(5).Items(flex.Center).
-		HoverBackground(theme.Hover).
+	selected := node.Entry >= 0 && node.Entry == m.selected
+	textColor := theme.Foreground
+	hoverColor := theme.Hover
+	if selected {
+		textColor = theme.AccentForeground
+		hoverColor = theme.Accent
+	}
+	row := f.Row().Height(24).MarginX(4).Radius(4).PadSides(0, 4, 0, 8+float32(visible.Depth)*12).Gap(5).Items(flex.Center).
+		HoverBackground(hoverColor).
 		HitWith(id, label, vivaui.HitOptions{
-			Role: vivaui.RoleButton, Selected: node.Entry >= 0 && node.Entry == m.selected,
-			Expanded: m.expanded[node.ID], Expandable: node.Kind == archive.NodePackage,
-			Disabled: node.Kind == archive.NodeResource, Cursor: vivaui.PointerCursorHand,
+			Role: vivaui.RoleButton, Selected: selected,
+			Expanded: m.expanded[node.ID], Expandable: len(node.Children) > 0,
+			Cursor: vivaui.PointerCursorHand,
 		})
-	if node.Entry >= 0 && node.Entry == m.selected {
+	if selected {
 		row = row.Background(theme.Accent)
 	}
 	row.Children(func() {
+		if len(node.Children) > 0 {
+			m.paintNodeDisclosure(f, node, theme)
+		}
 		switch node.Kind {
 		case archive.NodePackage:
-			glyph := chevronRightGlyph
-			if m.expanded[node.ID] {
-				glyph = chevronDownGlyph
-			}
-			f.Icon(glyph).Size(13, 13).Color(theme.MutedForeground)
 			f.Icon(projectGlyph).Size(16, 16).Color(vivaui.RGB24(0xd5b778))
 		case archive.NodeClass:
 			f.Icon(classGlyph).Size(16, 16).Color(vivaui.RGB24(0x6db083))
 		case archive.NodeResource:
-			f.Icon(resourceGlyph).Size(16, 16).Color(theme.MutedForeground)
+			f.Icon(resourceGlyph).Size(16, 16).Color(resourceColor(node.Path, theme))
 		}
-		f.Text(label).FontSize(13).Ellipsis()
+		f.Text(label).FontSize(13).Ellipsis().Color(textColor)
 	})
 	if row.Clicked() {
 		f.Canvas().AfterPaint(func() { m.activateNode(node) })
+	}
+}
+
+func (m *Model) paintNodeDisclosure(f *flex.Frame, node archive.Node, theme vivaui.Theme) {
+	glyph := chevronRightGlyph
+	if m.expanded[node.ID] {
+		glyph = chevronDownGlyph
+	}
+	button := f.Row().Size(14, 14).HitWith(projectDisclosures.At(node.ID), "Toggle "+node.Name, vivaui.HitOptions{
+		Role: vivaui.RoleButton, Expanded: m.expanded[node.ID], Expandable: true, Cursor: vivaui.PointerCursorHand,
+	})
+	button.Children(func() {
+		f.Icon(glyph).Size(13, 13).Color(theme.MutedForeground)
+	})
+	if button.Clicked() {
+		f.Canvas().AfterPaint(func() { m.expanded[node.ID] = !m.expanded[node.ID] })
 	}
 }
 
@@ -292,22 +323,34 @@ func (m *Model) activateNode(node archive.Node) {
 		m.expanded[node.ID] = !m.expanded[node.ID]
 	case archive.NodeClass:
 		m.startDecompile(node.Entry)
+	case archive.NodeResource:
+		m.startResource(node.Entry)
 	}
 }
 
-func (m *Model) paintEditorHeader(f *flex.Frame, _ vivaui.Theme) {
-	tab := "No open files"
+func (m *Model) paintEditorHeader(f *flex.Frame, theme vivaui.Theme) {
 	breadcrumb := "Workspace"
 	if m.workspace != nil {
 		breadcrumb = filepathBase(m.workspace.Archive.Path)
 		if m.selected >= 0 {
-			entry := m.workspace.Archive.Entries[m.selected]
-			tab = strings.TrimSuffix(entry.Name, ".class")
-			breadcrumb = entry.Path
+			breadcrumb = m.workspace.Archive.Entries[m.selected].Path
 		}
 	}
-	f.Row().Height(38).PadX(12).Items(flex.Center).Children(func() {
-		f.Text(tab).FontSize(13).Ellipsis()
+	f.Row().Height(38).PadSides(0, 4, 0, 4).Gap(4).Items(flex.Center).Justify(flex.Between).Children(func() {
+		if len(m.documents) == 0 {
+			f.Text("No open files").FontSize(13).Muted().Grow(1)
+		} else {
+			labels := make([]string, len(m.documents))
+			for index, doc := range m.documents {
+				labels[index] = doc.name
+			}
+			if index, ok := f.Tabs(editorTabs, labels, m.active).TabClicked(); ok {
+				m.activateDocument(index)
+			}
+		}
+		if iconButton(f, tabClose, "Close current file", cancelGlyph, theme, len(m.documents) > 0) {
+			m.closeActiveDocument()
+		}
 	})
 	f.Divider()
 	f.Row().Height(30).PadX(12).Items(flex.Center).Children(func() {

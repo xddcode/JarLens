@@ -15,6 +15,8 @@ target from verified product support.
 - Viva is pinned to commit `f7d46f622aacbe8d0dd7ad41c55f0e03a4cc762c` for the
   character-grid editor and process-local font registration.
 - JAR and standalone Class opening are implemented with bounded entry reads.
+- Text resources support UTF-8, UTF-8 BOM, UTF-16LE, and UTF-16BE. XML, JSON,
+  YAML, Manifest, Properties, and arbitrary valid text open without an engine.
 - Vineflower 1.12.0 is embedded as an unmodified Apache-2.0 artifact.
 - The current development build requires a Java 11+ runtime on `PATH`; JDK is only
   needed to compile integration fixtures.

@@ -24,7 +24,7 @@ Milestones contain the actionable work and acceptance criteria.
 - Class, method, and field navigation.
 - Workspace and full-text search.
 - Content-addressed decompilation cache.
-- Multiple source tabs and persisted workspace state.
+- Persisted workspace state across application restarts.
 - Large archive benchmarks and memory limits.
 
 ## M3 — Comparison and release quality

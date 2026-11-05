@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"path"
 	"sort"
 	"strings"
 )
@@ -63,23 +64,48 @@ func BuildTree(entries []Entry) *Tree {
 			}
 			parent = id
 		}
-		name := entry.Name
-		if entry.Kind == EntryClass {
-			name = strings.TrimSuffix(name, ".class")
-		}
 		id := len(tree.Nodes)
 		kind := NodeResource
 		if entry.Kind == EntryClass {
 			kind = NodeClass
 		}
-		tree.Nodes = append(tree.Nodes, Node{ID: id, Parent: parent, Entry: entry.ID, Path: entry.Path, Name: name, Kind: kind})
+		tree.Nodes = append(tree.Nodes, Node{ID: id, Parent: parent, Entry: entry.ID, Path: entry.Path, Name: entry.Name, Kind: kind})
 		tree.attach(parent, id)
 	}
+	tree.groupNestedClasses()
 	tree.sortChildren(tree.Roots)
 	for id := range tree.Nodes {
 		tree.sortChildren(tree.Nodes[id].Children)
 	}
 	return tree
+}
+
+func (t *Tree) groupNestedClasses() {
+	classes := make(map[string]int)
+	for _, node := range t.Nodes {
+		if node.Kind == NodeClass {
+			classes[node.Path] = node.ID
+		}
+	}
+	for _, node := range t.Nodes {
+		if node.Kind != NodeClass {
+			continue
+		}
+		extension := path.Ext(node.Name)
+		name := strings.TrimSuffix(node.Name, extension)
+		for index := strings.LastIndex(name, "$"); index > 0; index = strings.LastIndex(name[:index], "$") {
+			parentPath := path.Join(path.Dir(node.Path), name[:index]+extension)
+			parentID, exists := classes[parentPath]
+			if !exists || parentID == node.ID {
+				continue
+			}
+			t.detach(node.Parent, node.ID)
+			t.Nodes[node.ID].Parent = parentID
+			t.Nodes[node.ID].Name = name[index+1:] + extension
+			t.attach(parentID, node.ID)
+			break
+		}
+	}
 }
 
 func (t *Tree) attach(parent, child int) {
@@ -88,6 +114,24 @@ func (t *Tree) attach(parent, child int) {
 		return
 	}
 	t.Nodes[parent].Children = append(t.Nodes[parent].Children, child)
+}
+
+func (t *Tree) detach(parent, child int) {
+	children := t.Roots
+	if parent >= 0 {
+		children = t.Nodes[parent].Children
+	}
+	for index, id := range children {
+		if id == child {
+			children = append(children[:index], children[index+1:]...)
+			break
+		}
+	}
+	if parent < 0 {
+		t.Roots = children
+	} else {
+		t.Nodes[parent].Children = children
+	}
 }
 
 func (t *Tree) sortChildren(children []int) {
@@ -110,7 +154,7 @@ func (t *Tree) Visible(expanded map[int]bool) []VisibleNode {
 		for _, id := range children {
 			node := t.Nodes[id]
 			visible = append(visible, VisibleNode{Node: node, Depth: depth})
-			if node.Kind == NodePackage && expanded[id] {
+			if len(node.Children) > 0 && expanded[id] {
 				walk(node.Children, depth+1)
 			}
 		}

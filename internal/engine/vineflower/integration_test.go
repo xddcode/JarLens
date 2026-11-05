@@ -3,6 +3,7 @@
 package vineflower
 
 import (
+	"archive/zip"
 	"context"
 	"errors"
 	"os"
@@ -59,5 +60,66 @@ func TestVineflowerDecompilesJavaClass(t *testing.T) {
 	cancelNow()
 	if _, err := engine.Decompile(cancelled, request); !errors.Is(err, context.Canceled) {
 		t.Fatalf("cancelled engine request returned %v", err)
+	}
+}
+
+func TestVineflowerIncludesNestedClasses(t *testing.T) {
+	if _, err := exec.LookPath("javac"); err != nil {
+		t.Skip("javac is required for the engine integration fixture")
+	}
+	workspace := t.TempDir()
+	source := []byte("package example;\npublic class Hello {\n  static class Nested {}\n}\n")
+	sourcePath := filepath.Join(workspace, "Hello.java")
+	if err := os.WriteFile(sourcePath, source, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if output, err := exec.Command("javac", "-parameters", "-d", workspace, sourcePath).CombinedOutput(); err != nil {
+		t.Fatalf("javac failed: %v\n%s", err, output)
+	}
+	jarPath := filepath.Join(workspace, "fixture.jar")
+	writeTestJAR(t, workspace, jarPath, "Hello.class", "Hello$Nested.class")
+	outer, err := os.ReadFile(filepath.Join(workspace, "example", "Hello.class"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	engine := New()
+	defer engine.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	result, err := engine.Decompile(ctx, decompile.Request{ClassName: "example/Hello.class", Data: outer, ArchivePath: jarPath})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.Source, "class Nested") {
+		t.Fatalf("outer source does not include the nested declaration:\n%s", result.Source)
+	}
+}
+
+func writeTestJAR(t *testing.T, classesDir, path string, names ...string) {
+	t.Helper()
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writer := zip.NewWriter(file)
+	for _, name := range names {
+		data, err := os.ReadFile(filepath.Join(classesDir, "example", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		entry, err := writer.Create("example/" + name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := entry.Write(data); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
 	}
 }

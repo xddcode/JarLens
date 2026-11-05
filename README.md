@@ -54,9 +54,10 @@ go tool viva build
 | Native OpenIDEA Islands workspace | Available |
 | JAR/Class opening and lazy class tree | Available |
 | Vineflower 1.12.0 decompilation | Available |
-| Current source export | Available |
+| Multiple document tabs and current source export | Available |
+| XML, JSON, YAML, Manifest, and other UTF-8/UTF-16 text resources | Available |
 | Headless UI and real JDK integration tests | Available |
-| Search, cache, tabs, and multi-engine diff | Planned |
+| Search, cache, and multi-engine diff | Planned |
 | Built-in Java runtime, installers, and published releases | Not yet available |
 
 The roadmap and compatibility policy are in [ROADMAP.md](ROADMAP.md) and [docs/compatibility.md](docs/compatibility.md).

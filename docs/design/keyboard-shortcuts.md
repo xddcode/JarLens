@@ -13,7 +13,7 @@ Shortcuts do not override text editing expectations.
 | --- | --- | --- |
 | Command palette | Primary+Shift+P | M1 |
 | Open archive | Primary+O | M1 |
-| Close tab | Primary+W | M1 |
+| Close tab | Primary+W | Available |
 | Find in source | Primary+F | M1 |
 | Search workspace | Primary+Shift+F | M2 |
 | Go to line | Primary+G | M1 |
