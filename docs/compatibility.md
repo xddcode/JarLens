@@ -11,7 +11,7 @@ target from verified product support.
 
 ## Runtime and file formats
 
-- Go 1.26 or newer is required to build from source.
+- Go 1.26.1 or newer is required to build from source.
 - Viva is pinned to commit `f7d46f622aacbe8d0dd7ad41c55f0e03a4cc762c` for the
   character-grid editor and process-local font registration.
 - JAR and standalone Class opening are implemented with bounded entry reads.
