@@ -45,20 +45,26 @@ jobs:
           EOF
 
   package:
-    name: Package ${{ matrix.target }} ${{ matrix.arch }}
+    name: Package ${{ matrix.variant }} ${{ matrix.target }} ${{ matrix.arch }}
     needs: validate
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { os: windows-latest, target: windows, arch: amd64, format: zip }
-          - { os: windows-latest, target: windows, arch: arm64, format: zip }
-          - { os: macos-15, target: darwin, arch: amd64, format: zip }
-          - { os: macos-15, target: darwin, arch: arm64, format: zip }
-          - { os: ubuntu-24.04, target: linux, arch: amd64, format: tar.gz }
-          - { os: ubuntu-24.04, target: linux, arch: arm64, format: tar.gz }
+          - { variant: standard, os: windows-latest, target: windows, arch: amd64, format: zip }
+          - { variant: standard, os: windows-latest, target: windows, arch: arm64, format: zip }
+          - { variant: standard, os: macos-15, target: darwin, arch: amd64, format: zip }
+          - { variant: standard, os: macos-15, target: darwin, arch: arm64, format: zip }
+          - { variant: standard, os: ubuntu-24.04, target: linux, arch: amd64, format: tar.gz }
+          - { variant: standard, os: ubuntu-24.04, target: linux, arch: arm64, format: tar.gz }
+          - { variant: portable, os: windows-latest, target: windows, arch: amd64, format: zip }
+          - { variant: portable, os: windows-latest, target: windows, arch: arm64, format: zip }
+          - { variant: portable, os: macos-15, target: darwin, arch: amd64, format: zip }
+          - { variant: portable, os: macos-15, target: darwin, arch: arm64, format: zip }
+          - { variant: portable, os: ubuntu-24.04, target: linux, arch: amd64, format: tar.gz }
+          - { variant: portable, os: ubuntu-24.04, target: linux, arch: arm64, format: tar.gz }
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -83,11 +89,19 @@ jobs:
             *) extension=${src##*.} ;;
           esac
           mkdir -p "$RUNNER_TEMP/upload"
-          destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}.$extension"
+          suffix=""
+          if [ "${{ matrix.variant }}" = "portable" ]; then suffix="-portable"; fi
+          destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}$suffix.$extension"
           mv "$src" "$destination"
+      - name: Bundle the managed JRE for the standard variant
+        if: matrix.variant == 'standard'
+        shell: bash
+        run: |
+          python3 tools/runtime.py download -os "${{ matrix.target }}" -arch "${{ matrix.arch }}" -out "$RUNNER_TEMP/runtime"
+          python3 tools/runtime.py bundle -archive "$destination" -runtime "$RUNNER_TEMP/runtime/jre" -target "${{ matrix.target }}"
       - uses: actions/upload-artifact@v4
         with:
-          name: package-${{ matrix.target }}-${{ matrix.arch }}
+          name: package-${{ matrix.variant }}-${{ matrix.target }}-${{ matrix.arch }}
           path: ${{ runner.temp }}/upload/*
           if-no-files-found: error
 

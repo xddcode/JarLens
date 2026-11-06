@@ -29,7 +29,7 @@ func highlightJavaLine(appearance Appearance, _ string, line string, dst []compo
 	if appearance == AppearanceLight {
 		keyword = vivaui.RGB24(0x0033b3)
 		str = vivaui.RGB24(0x067d17)
-		comment = vivaui.RGB24(0x6c707e)
+		comment = vivaui.RGB24(0x8c8c8c)
 		number = vivaui.RGB24(0x1750eb)
 		annotation = vivaui.RGB24(0x9e880d)
 	}

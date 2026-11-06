@@ -24,13 +24,17 @@ func TestDeclarationOffset(t *testing.T) {
 	}
 }
 
-func TestRevealDocumentMovesCaret(t *testing.T) {
+func TestRevealDocumentSelectsDeclarationAndFocusesEditor(t *testing.T) {
 	source := "public class Hello {\n  static class Nested {}\n}"
 	doc := &document{source: source, editor: text.NewEditor(source)}
 	m := &Model{}
 	m.revealDocument(doc, "Nested")
 	want := utf8.RuneCountInString(source[:strings.Index(source, "Nested")])
-	if doc.editor.Caret() != want {
-		t.Fatalf("caret is %d, want %d", doc.editor.Caret(), want)
+	selection := doc.editor.Selection()
+	if doc.editor.Caret() != want || selection.Start != want || selection.End != want+len("Nested") {
+		t.Fatalf("declaration selection is %+v with caret %d, want %d..%d", selection, doc.editor.Caret(), want, want+len("Nested"))
+	}
+	if !m.focusSource {
+		t.Fatal("declaration navigation did not request editor focus")
 	}
 }

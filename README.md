@@ -19,6 +19,14 @@ A modern, GPU-native Java decompiler and code explorer built with Go and [Viva](
 - Replaceable decompiler engine adapters rather than a UI tied to one engine.
 - Reproducible development, testing, and releases driven entirely through GitHub.
 
+## Install
+
+- **Standard** packages include a pinned JRE and work without Java installed.
+- **Portable** packages use Java 11+ on `PATH` or the `JARLENS_JAVA` override.
+
+Both variants use the same source, tests, and decompiler engine. Platform and
+architecture-specific assets are published through GitHub Releases.
+
 ## Build from source
 
 Requirements: Go 1.26.1 or newer, a platform supported by Viva, and a Java 11+ runtime available as `java` for decompilation.
@@ -56,9 +64,11 @@ go tool viva build
 | Vineflower 1.12.0 decompilation | Available |
 | Multiple document tabs and current source export | Available |
 | XML, JSON, YAML, Manifest, and other UTF-8/UTF-16 text resources | Available |
+| Project filter, source find, and go to line | Available |
 | Headless UI and real JDK integration tests | Available |
-| Search, cache, and multi-engine diff | Planned |
-| Built-in Java runtime, installers, and published releases | Not yet available |
+| Global index, cache, and multi-engine diff | Planned |
+| Managed Java runtime in standard packages | Available |
+| Installers and published releases | Not yet available |
 
 The roadmap and compatibility policy are in [ROADMAP.md](ROADMAP.md) and [docs/compatibility.md](docs/compatibility.md).
 

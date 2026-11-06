@@ -12,12 +12,12 @@ Shortcuts do not override text editing expectations.
 | Command | Planned shortcut | Availability |
 | --- | --- | --- |
 | Command palette | Primary+Shift+P | M1 |
-| Open archive | Primary+O | M1 |
+| Open archive | Primary+O | Available |
 | Close tab | Primary+W | Available |
-| Find in source | Primary+F | M1 |
-| Search workspace | Primary+Shift+F | M2 |
-| Go to line | Primary+G | M1 |
-| Next/previous match | F3 / Shift+F3 | M1 |
+| Find in source | Primary+F | Available |
+| Show project filter | Primary+Shift+F | Available |
+| Go to line | Primary+G | Available |
+| Next/previous match | Primary+Enter / Primary+Shift+Enter | Available |
 | Cancel current task | Escape, when task focused | M1 |
 | Source/engine diff | No default initially | M3 |
 

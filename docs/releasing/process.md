@@ -3,6 +3,20 @@
 JarLens uses Semantic Versioning and annotated Git tags. Releases are built only
 from reviewed commits on `main` through GitHub Actions.
 
+## Distribution variants
+
+Every platform and architecture has two variants:
+
+- **Standard** embeds a pinned Adoptium Temurin JRE 21. It works offline without
+  a system Java installation and is the default for most users.
+- **Portable** uses Java 11+ from `PATH` or `JARLENS_JAVA` and is intended for
+  users who manage their own runtime.
+
+The packaging workflow verifies the JRE checksum and bundles it without changing
+the application. Windows and Linux use `jre/bin` beside the executable; macOS uses
+`JarLens.app/Contents/Resources/jre/bin`. Runtime downloads happen only in CI,
+never at application startup.
+
 ## Prepare
 
 1. Complete the milestone and confirm all required checks on `main`.

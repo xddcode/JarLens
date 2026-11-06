@@ -33,8 +33,7 @@ type Engine struct {
 }
 
 func New() *Engine {
-	java, _ := exec.LookPath("java")
-	return &Engine{java: java}
+	return &Engine{java: findJava("")}
 }
 
 func (e *Engine) Name() string {

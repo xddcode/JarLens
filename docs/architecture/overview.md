@@ -25,7 +25,9 @@ internal/ui ---- internal/workspace
 - `cmd/jarlens` is the thin executable entry point.
 - `internal/ui` owns Viva presentation and user interaction. It does not invoke
   Java processes or parse archives directly.
-- `internal/workspace` owns open artifacts, tabs, selection, and task state.
+- `internal/workspace` owns open artifacts, recent-workspace persistence, tabs,
+  selection, and task state. The application entry injects the persistent recent
+  store, so UI tests never write the user's real history.
 - `internal/archive` reads JAR/Class metadata and exposes lazy hierarchy models.
 - `internal/decompile` defines engine-neutral requests, results, diagnostics,
   cancellation, and task state.

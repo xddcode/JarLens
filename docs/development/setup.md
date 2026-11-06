@@ -10,6 +10,9 @@
 
 The Go module pins Viva and its command. Vineflower 1.12.0 is embedded in the
 program, so no separate engine download is needed. A separate Viva checkout is not needed.
+The engine checks `JARLENS_JAVA`, a managed `jre` beside the executable (or the
+macOS app Resources directory), and finally `PATH`. Standard release packages need
+no system Java; portable packages use Java 11+ on `PATH`.
 
 ## Run and test
 

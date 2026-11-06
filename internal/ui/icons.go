@@ -2,15 +2,38 @@ package ui
 
 import vivaui "github.com/vivaui/viva/ui"
 
-var projectGlyph = vivaui.Icon{
-	ViewBox: 24,
-	Stroke:  2,
-	Cap:     vivaui.CapRound,
-	Join:    vivaui.JoinRound,
+// Package mark: JetBrains IntelliJ Platform, Apache-2.0.
+var searchGlyph = vivaui.Icon{
+	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
 	Commands: []vivaui.PathCommand{
-		vivaui.MoveTo(3, 18), vivaui.LineTo(3, 6), vivaui.LineTo(9, 6),
-		vivaui.LineTo(11, 8), vivaui.LineTo(21, 8), vivaui.LineTo(21, 18),
-		vivaui.ClosePath(),
+		vivaui.MoveTo(10.5, 4.5),
+		vivaui.CubicTo(7.2, 4.5, 4.5, 7.2, 4.5, 10.5),
+		vivaui.CubicTo(4.5, 13.8, 7.2, 16.5, 10.5, 16.5),
+		vivaui.CubicTo(13.8, 16.5, 16.5, 13.8, 16.5, 10.5),
+		vivaui.CubicTo(16.5, 7.2, 13.8, 4.5, 10.5, 4.5),
+		vivaui.MoveTo(16, 16), vivaui.LineTo(22, 22),
+	},
+}
+
+var infoGlyph = vivaui.Icon{
+	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(12, 3),
+		vivaui.CubicTo(7, 3, 3, 7, 3, 12),
+		vivaui.CubicTo(3, 17, 7, 21, 12, 21),
+		vivaui.CubicTo(17, 21, 21, 17, 21, 12),
+		vivaui.CubicTo(21, 7, 17, 3, 12, 3), vivaui.ClosePath(),
+		vivaui.MoveTo(12, 11), vivaui.LineTo(12, 17),
+		vivaui.MoveTo(12, 7), vivaui.LineTo(12, 7.1),
+	},
+}
+
+var homeGlyph = vivaui.Icon{
+	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(3, 11), vivaui.LineTo(12, 4), vivaui.LineTo(21, 11),
+		vivaui.MoveTo(5, 10), vivaui.LineTo(5, 20), vivaui.LineTo(19, 20), vivaui.LineTo(19, 10),
+		vivaui.MoveTo(9, 20), vivaui.LineTo(9, 14), vivaui.LineTo(15, 14), vivaui.LineTo(15, 20),
 	},
 }
 
@@ -42,34 +65,73 @@ var cancelGlyph = vivaui.Icon{
 	},
 }
 
-var classGlyph = vivaui.Icon{
+var arrowUpGlyph = vivaui.Icon{
 	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
 	Commands: []vivaui.PathCommand{
-		vivaui.MoveTo(14, 3), vivaui.LineTo(6, 3), vivaui.LineTo(6, 21),
-		vivaui.LineTo(18, 21), vivaui.LineTo(18, 9), vivaui.ClosePath(),
-		vivaui.MoveTo(14, 3), vivaui.LineTo(14, 9), vivaui.LineTo(18, 9),
-		vivaui.MoveTo(10, 12), vivaui.LineTo(8, 15), vivaui.LineTo(10, 18),
-		vivaui.MoveTo(14, 12), vivaui.LineTo(16, 15), vivaui.LineTo(14, 18),
+		vivaui.MoveTo(12, 20), vivaui.LineTo(12, 4),
+		vivaui.MoveTo(5, 11), vivaui.LineTo(12, 4), vivaui.LineTo(19, 11),
 	},
 }
 
-var resourceGlyph = vivaui.Icon{
+var arrowDownGlyph = vivaui.Icon{
 	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
 	Commands: []vivaui.PathCommand{
-		vivaui.MoveTo(14, 3), vivaui.LineTo(6, 3), vivaui.LineTo(6, 21),
-		vivaui.LineTo(18, 21), vivaui.LineTo(18, 9), vivaui.ClosePath(),
-		vivaui.MoveTo(14, 3), vivaui.LineTo(14, 9), vivaui.LineTo(18, 9),
+		vivaui.MoveTo(12, 4), vivaui.LineTo(12, 20),
+		vivaui.MoveTo(5, 13), vivaui.LineTo(12, 20), vivaui.LineTo(19, 13),
+	},
+}
+
+var moreVerticalGlyph = vivaui.Icon{
+	ViewBox: 24, Stroke: 3, Cap: vivaui.CapRound,
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(12, 5), vivaui.LineTo(12, 5.1),
+		vivaui.MoveTo(12, 12), vivaui.LineTo(12, 12.1),
+		vivaui.MoveTo(12, 19), vivaui.LineTo(12, 19.1),
+	},
+}
+
+var menuGlyph = vivaui.Icon{
+	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound,
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(4, 6), vivaui.LineTo(20, 6),
+		vivaui.MoveTo(4, 12), vivaui.LineTo(20, 12),
+		vivaui.MoveTo(4, 18), vivaui.LineTo(20, 18),
+	},
+}
+
+var splitRightGlyph = vivaui.Icon{
+	ViewBox: 16, Stroke: 1.2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(3, 2), vivaui.LineTo(13, 2), vivaui.LineTo(13, 14), vivaui.LineTo(3, 14), vivaui.ClosePath(),
+		vivaui.MoveTo(8, 2), vivaui.LineTo(8, 14),
+	},
+}
+
+var splitDownGlyph = vivaui.Icon{
+	ViewBox: 16, Stroke: 1.2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(2, 3), vivaui.LineTo(14, 3), vivaui.LineTo(14, 13), vivaui.LineTo(2, 13), vivaui.ClosePath(),
+		vivaui.MoveTo(2, 8), vivaui.LineTo(14, 8),
+	},
+}
+
+var xmlGlyph = vivaui.Icon{
+	ViewBox: 16, Stroke: 1.3, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(5, 4), vivaui.LineTo(1, 8), vivaui.LineTo(5, 12),
+		vivaui.MoveTo(11, 4), vivaui.LineTo(15, 8), vivaui.LineTo(11, 12),
+		vivaui.MoveTo(9.5, 2), vivaui.LineTo(6.5, 14),
 	},
 }
 
 var chevronRightGlyph = vivaui.Icon{
-	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
-	Commands: []vivaui.PathCommand{vivaui.MoveTo(9, 6), vivaui.LineTo(15, 12), vivaui.LineTo(9, 18)},
+	ViewBox: 16, Stroke: 1.5, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	Commands: []vivaui.PathCommand{vivaui.MoveTo(6, 4.5), vivaui.LineTo(9.5, 8), vivaui.LineTo(6, 11.5)},
 }
 
 var chevronDownGlyph = vivaui.Icon{
-	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
-	Commands: []vivaui.PathCommand{vivaui.MoveTo(6, 9), vivaui.LineTo(12, 15), vivaui.LineTo(18, 9)},
+	ViewBox: 16, Stroke: 1.5, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	Commands: []vivaui.PathCommand{vivaui.MoveTo(4.5, 6.25), vivaui.LineTo(8, 9.75), vivaui.LineTo(11.5, 6.25)},
 }
 
 var sunGlyph = vivaui.Icon{

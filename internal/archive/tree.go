@@ -147,6 +147,43 @@ func (t *Tree) sortChildren(children []int) {
 	})
 }
 
+func (t *Tree) VisibleQuery(query string) []VisibleNode {
+	query = strings.ToLower(strings.TrimSpace(query))
+	if query == "" {
+		return nil
+	}
+	matched := make(map[int]bool)
+	var matches func([]int) bool
+	matches = func(children []int) bool {
+		found := false
+		for _, id := range children {
+			node := t.Nodes[id]
+			childMatch := matches(node.Children)
+			if strings.Contains(strings.ToLower(node.Name), query) || strings.Contains(strings.ToLower(node.Path), query) || childMatch {
+				matched[id] = true
+				found = true
+			}
+		}
+		return found
+	}
+	matches(t.Roots)
+
+	var visible []VisibleNode
+	var walk func([]int, int)
+	walk = func(children []int, depth int) {
+		for _, id := range children {
+			if !matched[id] {
+				continue
+			}
+			node := t.Nodes[id]
+			visible = append(visible, VisibleNode{Node: node, Depth: depth})
+			walk(node.Children, depth+1)
+		}
+	}
+	walk(t.Roots, 0)
+	return visible
+}
+
 func (t *Tree) Visible(expanded map[int]bool) []VisibleNode {
 	var visible []VisibleNode
 	var walk func([]int, int)

@@ -40,11 +40,11 @@ func highlightDocumentLine(appearance Appearance, language, line string, dst []c
 }
 
 func highlightXMLLine(appearance Appearance, line string, dst []components.CodeEditorRun) []components.CodeEditorRun {
-	tag := vivaui.RGB24(0x56a8f5)
+	tag := vivaui.RGB24(0xd5b778)
 	comment := vivaui.RGB24(0x7a7e85)
 	if appearance == AppearanceLight {
-		tag = vivaui.RGB24(0x00627a)
-		comment = vivaui.RGB24(0x6c707e)
+		tag = vivaui.RGB24(0x0033b3)
+		comment = vivaui.RGB24(0x8c8c8c)
 	}
 	for index := 0; index < len(line); {
 		switch {
@@ -69,15 +69,4 @@ func highlightXMLLine(appearance Appearance, line string, dst []components.CodeE
 		}
 	}
 	return dst
-}
-
-func resourceColor(filePath string, theme vivaui.Theme) vivaui.Color {
-	switch strings.ToLower(filepath.Ext(filePath)) {
-	case ".xml", ".xsd", ".html", ".htm":
-		return vivaui.RGB24(0xd5b778)
-	case ".json", ".yaml", ".yml", ".toml":
-		return vivaui.RGB24(0x56a8f5)
-	default:
-		return theme.MutedForeground
-	}
 }

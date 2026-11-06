@@ -3,7 +3,7 @@
 check: fmt tidy vet staticcheck test
 
 fmt:
-	@files=$$(git ls-files --cached --others --exclude-standard '*.go'); \
+	@files=$$(git ls-files --cached --others --exclude-standard '*.go' | while IFS= read -r file; do [ ! -f "$$file" ] || printf '%s\n' "$$file"; done); \
 		unformatted=$$(gofmt -l $$files); \
 		if [ -n "$$unformatted" ]; then echo "$$unformatted"; exit 1; fi
 

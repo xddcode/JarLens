@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrJavaNotFound   = errors.New("java runtime was not found")
+	ErrJavaNotFound   = errors.New("java runtime was not found; use a bundled JRE, set JARLENS_JAVA, or install Java 11+")
 	ErrEngineFailed   = errors.New("decompiler engine failed")
 	ErrOutputTooLarge = errors.New("decompiled source exceeds the 32 MiB limit")
 )

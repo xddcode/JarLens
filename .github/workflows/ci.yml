@@ -24,6 +24,8 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+      - name: Runtime packaging tests
+        run: python3 -m unittest tools/runtime_test.py -v
       - run: make check
 
   test:

@@ -4,6 +4,7 @@ id = "io.github.xddcode.jarlens"
 version = "0.1.0"
 executable = "jarlens"
 package = "./cmd/jarlens"
+icon = "assets/app-icon.png"
 
 [build]
 out = "build/dist"

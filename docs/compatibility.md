@@ -18,9 +18,10 @@ target from verified product support.
 - Text resources support UTF-8, UTF-8 BOM, UTF-16LE, and UTF-16BE. XML, JSON,
   YAML, Manifest, Properties, and arbitrary valid text open without an engine.
 - Vineflower 1.12.0 is embedded as an unmodified Apache-2.0 artifact.
-- The current development build requires a Java 11+ runtime on `PATH`; JDK is only
-  needed to compile integration fixtures.
-- A pinned runtime bundled into installers is planned before the 1.0 release.
+- Standard packages include Adoptium Temurin JRE 21 and work without a system
+  Java installation.
+- Portable packages use Java 11+ on `PATH` or an explicit `JARLENS_JAVA` override.
+- JDK is only needed to compile integration fixtures.
 - DEX, APK, and AAB are not supported in the initial roadmap stages.
 
 ## Compatibility changes

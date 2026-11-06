@@ -70,6 +70,25 @@ func TestTreeGroupsNestedClasses(t *testing.T) {
 	}
 }
 
+func TestVisibleQueryKeepsOnlyMatchesAndAncestors(t *testing.T) {
+	tree := BuildTree([]Entry{
+		{ID: 0, Path: "com/example/Hello.class", Name: "Hello.class", Kind: EntryClass},
+		{ID: 1, Path: "org/other/World.class", Name: "World.class", Kind: EntryClass},
+	})
+	visible := tree.VisibleQuery("hello")
+	if len(visible) != 3 {
+		t.Fatalf("filtered nodes: %+v", visible)
+	}
+	for index, want := range []string{"com", "example", "Hello.class"} {
+		if visible[index].Node.Name != want || visible[index].Depth != index {
+			t.Fatalf("filtered path %d is %+v, want %s", index, visible[index], want)
+		}
+	}
+	if visible := tree.VisibleQuery("missing"); len(visible) != 0 {
+		t.Fatalf("unexpected matches: %+v", visible)
+	}
+}
+
 func TestTreeSupportsDuplicateEntryNames(t *testing.T) {
 	tree := BuildTree([]Entry{
 		{ID: 4, Path: "a/Thing.class", Name: "Thing.class", Kind: EntryClass},

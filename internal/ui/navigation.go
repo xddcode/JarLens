@@ -3,6 +3,8 @@ package ui
 import (
 	"strings"
 	"unicode/utf8"
+
+	"github.com/vivaui/viva/text"
 )
 
 func (m *Model) revealDocument(doc *document, name string) {
@@ -13,8 +15,11 @@ func (m *Model) revealDocument(doc *document, name string) {
 	if offset < 0 {
 		return
 	}
-	doc.editor.MoveTo(utf8.RuneCountInString(doc.source[:offset]), false)
-	doc.code.Reveal(offset)
+	start := utf8.RuneCountInString(doc.source[:offset])
+	end := start + utf8.RuneCountInString(name)
+	doc.editor.SetSelection(text.Range{Start: end, End: start})
+	doc.code.Reveal(offset + len(name))
+	m.focusSource = true
 }
 
 func declarationOffset(source, name string) int {
