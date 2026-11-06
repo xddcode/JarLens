@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.26.1%2B-00ADD8.svg)](go.mod)
 
-**English | [简体中文](#简体中文)**
+**English | [简体中文](README-zh.md)**
 
 A modern, GPU-native Java decompiler and code explorer built with Go and [Viva](https://github.com/vivaui/viva).
 
