@@ -9,8 +9,6 @@
 
 JarLens 是一款基于 Go 和 [Viva](https://github.com/vivaui/viva) 构建的现代化 GPU 原生 Java 反编译与代码浏览工具。
 
-> JarLens 正在积极开发，尚未发布正式版本。当前源码已支持打开 JAR/Class 文件、浏览归档结构、使用内置 Vineflower 引擎反编译类，以及导出 Java 源码。
-
 ## 为什么选择 JarLens？
 
 - 使用原生桌面渲染，不依赖 Electron、浏览器引擎或内嵌 WebView。
