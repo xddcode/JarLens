@@ -99,7 +99,7 @@ jobs:
         run: |
           python3 tools/runtime.py download -os "${{ matrix.target }}" -arch "${{ matrix.arch }}" -out "$RUNNER_TEMP/runtime"
           python3 tools/runtime.py bundle -archive "$destination" -runtime "$RUNNER_TEMP/runtime/jre" -target "${{ matrix.target }}"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: package-${{ matrix.variant }}-${{ matrix.target }}-${{ matrix.arch }}
           path: ${{ runner.temp }}/upload/*
