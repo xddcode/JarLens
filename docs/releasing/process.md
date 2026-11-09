@@ -31,9 +31,12 @@ never at application startup.
 Create an annotated tag whose message is the committed release note:
 
 ```sh
-git tag -a v<version> -F docs/releases/<version>.md
+git tag -a v<version> --cleanup=verbatim -F docs/releases/<version>.md
 git push origin v<version>
 ```
+
+`--cleanup=verbatim` preserves Markdown headings in the tag message; Git's default
+comment stripping would otherwise remove every line that starts with `#`.
 
 The release workflow rejects a tag/version mismatch or missing notes. It packages
 Windows, macOS, and Linux artifacts, collects an SBOM and notices, creates a draft
