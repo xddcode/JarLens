@@ -44,8 +44,17 @@ def select_jre(assets, os_name, architecture):
     raise ValueError(f"no JRE for {os_name}/{architecture}")
 
 
+def adoptium_architecture(architecture):
+    if architecture == "arm64":
+        return "aarch64"
+    if architecture == "amd64":
+        return "x64"
+    raise ValueError(f"unsupported architecture: {architecture}")
+
+
 def download_jre(os_name, architecture, output):
     os_name = "mac" if os_name == "darwin" else os_name
+    architecture = adoptium_architecture(architecture)
     query = f"?os={os_name}&architecture={architecture}&image_type=jre&vendor=eclipse"
     assets = download_json(API + query)
     package = select_jre(assets, os_name, architecture)
