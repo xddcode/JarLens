@@ -7,88 +7,120 @@ import (
 	"github.com/vivaui/viva/flex"
 	vivaui "github.com/vivaui/viva/ui"
 	"github.com/xddcode/jarlens/internal/archive"
+	"github.com/xddcode/jarlens/internal/ui/openideaicons"
 )
 
-func paintFileIcon(f *flex.Frame, filePath string, kind archive.NodeKind, expanded bool, size float32) flex.Box {
-	if kind == archive.NodePackage {
-		glyph := materialFolderGlyph
-		if expanded {
-			glyph = materialFolderOpenGlyph
+type fileIconID uint8
+
+const (
+	fileIconPackage fileIconID = iota
+	fileIconClass
+	fileIconJava
+	fileIconJSON
+	fileIconYAML
+	fileIconConfig
+	fileIconProperties
+	fileIconXML
+	fileIconHTML
+	fileIconXSD
+	fileIconText
+)
+
+type themedFileIcon struct {
+	light vivaui.Icon
+	dark  vivaui.Icon
+}
+
+var openIDEAFileIcons = [...]themedFileIcon{
+	fileIconPackage:    {light: openideaicons.Package, dark: openideaicons.Package_dark},
+	fileIconClass:      {light: openIDEAClassIcon(openideaicons.Class, vivaui.RGB24(0x3574f0), vivaui.RGB24(0xe7effd)), dark: openIDEAClassIcon(openideaicons.Class_dark, vivaui.RGB24(0x548af7), vivaui.RGB24(0x25324d))},
+	fileIconJava:       {light: openIDEAJavaIcon(openideaicons.Java), dark: openIDEAJavaIcon(openideaicons.Java_dark)},
+	fileIconJSON:       {light: openideaicons.Json, dark: openideaicons.Json_dark},
+	fileIconYAML:       {light: openideaicons.Yaml, dark: openideaicons.Yaml_dark},
+	fileIconConfig:     {light: openideaicons.Config, dark: openideaicons.Config_dark},
+	fileIconProperties: {light: openideaicons.Properties, dark: openideaicons.Properties_dark},
+	fileIconXML:        {light: openideaicons.Xml, dark: openideaicons.Xml_dark},
+	fileIconHTML:       {light: openideaicons.Html, dark: openideaicons.Html_dark},
+	fileIconXSD:        {light: openideaicons.Xsd, dark: openideaicons.Xsd_dark},
+	fileIconText:       {light: openideaicons.Text, dark: openideaicons.Text_dark},
+}
+
+func paintFileIcon(f *flex.Frame, filePath string, kind archive.NodeKind, dark bool, size float32) flex.Box {
+	id := fileIconIDFor(filePath, kind)
+	icon := f.Icon(openIDEAFileIcon(id, dark)).Size(size, size)
+	if id == fileIconJava {
+		color := vivaui.RGB24(0xe66d17)
+		if dark {
+			color = vivaui.RGB24(0xc77d55)
 		}
-		return f.Icon(glyph).Size(size, size)
+		return icon.Color(color)
+	}
+	return icon
+}
+
+func fileIconIDFor(filePath string, kind archive.NodeKind) fileIconID {
+	if kind == archive.NodePackage {
+		return fileIconPackage
 	}
 	if kind == archive.NodeClass {
-		return materialTextBadge(f, "CL", vivaui.RGB24(0x8d6e63), vivaui.RGB24(0xffffff), 7.4, size)
+		return fileIconClass
 	}
 	switch strings.ToLower(filepath.Ext(filePath)) {
 	case ".java":
-		return materialTextBadge(f, "J", vivaui.RGB24(0xe53935), vivaui.RGB24(0xffffff), 9.5, size)
+		return fileIconJava
 	case ".json":
-		return materialTextBadge(f, "{}", vivaui.RGB24(0xfbc02d), vivaui.RGB24(0x5d4037), 9, size)
+		return fileIconJSON
 	case ".yaml", ".yml":
-		return materialTextBadge(f, "YML", vivaui.RGB24(0xe53935), vivaui.RGB24(0xffffff), 5.6, size)
-	case ".properties", ".ini", ".conf", ".cfg":
-		return materialTextBadge(f, "INI", vivaui.RGB24(0x78909c), vivaui.RGB24(0xffffff), 5.6, size)
-	case ".xml", ".xsd", ".html", ".htm":
-		box := f.Row().Size(size, size).Radius(size * 3 / 16).Background(vivaui.RGB24(0xff9800)).Center()
-		box.Children(func() {
-			f.Icon(xmlGlyph).Size(size*3/4, size*3/4).Color(vivaui.RGB24(0xffffff))
-		})
-		return box
+		return fileIconYAML
+	case ".ini", ".conf", ".cfg":
+		return fileIconConfig
+	case ".properties":
+		return fileIconProperties
+	case ".xml":
+		return fileIconXML
+	case ".html", ".htm":
+		return fileIconHTML
+	case ".xsd":
+		return fileIconXSD
 	default:
-		return f.Icon(materialTextGlyph).Size(size, size)
+		return fileIconText
 	}
 }
 
-func materialTextBadge(f *flex.Frame, label string, background, foreground vivaui.Color, fontSize, size float32) flex.Box {
-	box := f.Row().Size(size, size).Radius(size * 3 / 16).Background(background).Center()
-	box.Children(func() {
-		f.Text(label).FontSize(fontSize * size / 16).Bold().Color(foreground)
-	})
-	return box
+func openIDEAFileIcon(id fileIconID, dark bool) vivaui.Icon {
+	if dark {
+		return openIDEAFileIcons[id].dark
+	}
+	return openIDEAFileIcons[id].light
 }
 
-var materialFolderGlyph = vivaui.Icon{
-	ViewBox: 16,
-	Layers: []vivaui.IconLayer{{Fill: vivaui.RGB24(0x90a4ae), Commands: []vivaui.PathCommand{
-		vivaui.MoveTo(1.5, 2.5), vivaui.LineTo(6.1, 2.5), vivaui.LineTo(7.6, 4), vivaui.LineTo(14.5, 4),
-		vivaui.QuadTo(15.5, 4, 15.5, 5), vivaui.LineTo(15.5, 12.5),
-		vivaui.QuadTo(15.5, 13.5, 14.5, 13.5), vivaui.LineTo(1.5, 13.5),
-		vivaui.QuadTo(0.5, 13.5, 0.5, 12.5), vivaui.LineTo(0.5, 3.5),
-		vivaui.QuadTo(0.5, 2.5, 1.5, 2.5), vivaui.ClosePath(),
-	}}},
+func openIDEAClassIcon(source vivaui.Icon, outline, background vivaui.Color) vivaui.Icon {
+	source.Layers = []vivaui.IconLayer{
+		{Fill: outline, Commands: openIDEACircle(7)},
+		{Fill: background, Commands: openIDEACircle(6)},
+		source.Layers[1],
+	}
+	return source
 }
 
-var materialFolderOpenGlyph = vivaui.Icon{
-	ViewBox: 16,
-	Layers: []vivaui.IconLayer{
-		{Fill: vivaui.RGB24(0x90a4ae), Commands: []vivaui.PathCommand{
-			vivaui.MoveTo(1.5, 2.5), vivaui.LineTo(6.1, 2.5), vivaui.LineTo(7.6, 4), vivaui.LineTo(14, 4),
-			vivaui.QuadTo(15, 4, 15, 5), vivaui.LineTo(15, 6.5), vivaui.LineTo(4.2, 6.5),
-			vivaui.LineTo(2, 13.5), vivaui.LineTo(1.5, 13.5), vivaui.QuadTo(0.5, 13.5, 0.5, 12.5),
-			vivaui.LineTo(0.5, 3.5), vivaui.QuadTo(0.5, 2.5, 1.5, 2.5), vivaui.ClosePath(),
-		}},
-		{Fill: vivaui.RGBA(144, 164, 174, 0.75), Commands: []vivaui.PathCommand{
-			vivaui.MoveTo(4.2, 7), vivaui.LineTo(15.5, 7), vivaui.LineTo(13.3, 13.5), vivaui.LineTo(2, 13.5), vivaui.ClosePath(),
-		}},
-	},
+func openIDEACircle(radius float32) []vivaui.PathCommand {
+	const kappa = 0.5522848
+	offset := radius * kappa
+	return []vivaui.PathCommand{
+		vivaui.MoveTo(8+radius, 8),
+		vivaui.CubicTo(8+radius, 8+offset, 8+offset, 8+radius, 8, 8+radius),
+		vivaui.CubicTo(8-offset, 8+radius, 8-radius, 8+offset, 8-radius, 8),
+		vivaui.CubicTo(8-radius, 8-offset, 8-offset, 8-radius, 8, 8-radius),
+		vivaui.CubicTo(8+offset, 8-radius, 8+radius, 8-offset, 8+radius, 8),
+		vivaui.ClosePath(),
+	}
 }
 
-var materialTextGlyph = vivaui.Icon{
-	ViewBox: 16,
-	Layers: []vivaui.IconLayer{
-		{Fill: vivaui.RGB24(0x90a4ae), Commands: []vivaui.PathCommand{
-			vivaui.MoveTo(4, 1), vivaui.LineTo(9.6, 1), vivaui.LineTo(13, 4.4), vivaui.LineTo(13, 14),
-			vivaui.QuadTo(13, 15, 12, 15), vivaui.LineTo(4, 15), vivaui.QuadTo(3, 15, 3, 14),
-			vivaui.LineTo(3, 2), vivaui.QuadTo(3, 1, 4, 1), vivaui.ClosePath(),
-		}},
-		{Fill: vivaui.RGBA(255, 255, 255, 0.45), Commands: []vivaui.PathCommand{
-			vivaui.MoveTo(9.6, 1), vivaui.LineTo(9.6, 4.4), vivaui.LineTo(13, 4.4), vivaui.ClosePath(),
-		}},
-		{Fill: vivaui.RGB24(0xffffff), Commands: []vivaui.PathCommand{
-			vivaui.MoveTo(5, 7), vivaui.LineTo(11, 7), vivaui.LineTo(11, 8), vivaui.LineTo(5, 8), vivaui.ClosePath(),
-			vivaui.MoveTo(5, 9.5), vivaui.LineTo(11, 9.5), vivaui.LineTo(11, 10.5), vivaui.LineTo(5, 10.5), vivaui.ClosePath(),
-			vivaui.MoveTo(5, 12), vivaui.LineTo(9, 12), vivaui.LineTo(9, 13), vivaui.LineTo(5, 13), vivaui.ClosePath(),
-		}},
-	},
+func openIDEAJavaIcon(source vivaui.Icon) vivaui.Icon {
+	commands := make([]vivaui.PathCommand, 0, len(source.Commands)+len(source.Layers[1].Commands))
+	commands = append(commands, source.Commands...)
+	commands = append(commands, source.Layers[1].Commands...)
+	source.Commands = commands
+	source.Stroke = 1
+	return source
 }

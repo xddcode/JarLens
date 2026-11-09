@@ -101,7 +101,11 @@ func (t *Tree) groupNestedClasses() {
 			}
 			t.detach(node.Parent, node.ID)
 			t.Nodes[node.ID].Parent = parentID
-			t.Nodes[node.ID].Name = name[index+1:] + extension
+			displayName := name[index+1:] + extension
+			if first := name[index+1]; first >= '0' && first <= '9' {
+				displayName = node.Name
+			}
+			t.Nodes[node.ID].Name = displayName
 			t.attach(parentID, node.ID)
 			break
 		}

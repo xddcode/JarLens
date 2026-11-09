@@ -4,6 +4,11 @@ Copyright 2026 JarLens contributors
 JarLens is built with Viva (https://github.com/vivaui/viva), licensed under
 the Apache License, Version 2.0.
 
+This product includes icons developed by JetBrains s.r.o. and contributors as
+part of the IntelliJ Platform (https://github.com/JetBrains/intellij-community),
+licensed under the Apache License, Version 2.0.
+Copyright 2000-2026 JetBrains s.r.o. and contributors.
+
 The JarLens name and logo are not licensed under Apache-2.0. Third-party
 software, decompiler engines, fonts, icons and other assets retain their own
 licenses. See THIRD_PARTY_NOTICES.md for distribution notices.

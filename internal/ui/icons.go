@@ -1,6 +1,9 @@
 package ui
 
-import vivaui "github.com/vivaui/viva/ui"
+import (
+	vivaui "github.com/vivaui/viva/ui"
+	"github.com/xddcode/jarlens/internal/ui/openideaicons"
+)
 
 // Package mark: JetBrains IntelliJ Platform, Apache-2.0.
 var searchGlyph = vivaui.Icon{
@@ -26,6 +29,27 @@ var infoGlyph = vivaui.Icon{
 		vivaui.MoveTo(12, 11), vivaui.LineTo(12, 17),
 		vivaui.MoveTo(12, 7), vivaui.LineTo(12, 7.1),
 	},
+}
+
+var settingsGlyph = openIDEASettingsGlyph(vivaui.RGB24(0x9fa2a8))
+var settingsLightGlyph = openIDEASettingsGlyph(vivaui.RGB24(0x5f6269))
+
+func settingsGlyphForAppearance(appearance Appearance) vivaui.Icon {
+	if appearance == AppearanceLight {
+		return settingsLightGlyph
+	}
+	return settingsGlyph
+}
+
+func openIDEASettingsGlyph(color vivaui.Color) vivaui.Icon {
+	glyph := openideaicons.OpenideaSettings20x20
+	layers := make([]vivaui.IconLayer, len(glyph.Layers))
+	copy(layers, glyph.Layers)
+	for index := range layers {
+		layers[index].Fill = color
+	}
+	glyph.Layers = layers
+	return glyph
 }
 
 var homeGlyph = vivaui.Icon{
@@ -90,15 +114,6 @@ var moreVerticalGlyph = vivaui.Icon{
 	},
 }
 
-var menuGlyph = vivaui.Icon{
-	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound,
-	Commands: []vivaui.PathCommand{
-		vivaui.MoveTo(4, 6), vivaui.LineTo(20, 6),
-		vivaui.MoveTo(4, 12), vivaui.LineTo(20, 12),
-		vivaui.MoveTo(4, 18), vivaui.LineTo(20, 18),
-	},
-}
-
 var splitRightGlyph = vivaui.Icon{
 	ViewBox: 16, Stroke: 1.2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
 	Commands: []vivaui.PathCommand{
@@ -112,15 +127,6 @@ var splitDownGlyph = vivaui.Icon{
 	Commands: []vivaui.PathCommand{
 		vivaui.MoveTo(2, 3), vivaui.LineTo(14, 3), vivaui.LineTo(14, 13), vivaui.LineTo(2, 13), vivaui.ClosePath(),
 		vivaui.MoveTo(2, 8), vivaui.LineTo(14, 8),
-	},
-}
-
-var xmlGlyph = vivaui.Icon{
-	ViewBox: 16, Stroke: 1.3, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
-	Commands: []vivaui.PathCommand{
-		vivaui.MoveTo(5, 4), vivaui.LineTo(1, 8), vivaui.LineTo(5, 12),
-		vivaui.MoveTo(11, 4), vivaui.LineTo(15, 8), vivaui.LineTo(11, 12),
-		vivaui.MoveTo(9.5, 2), vivaui.LineTo(6.5, 14),
 	},
 }
 

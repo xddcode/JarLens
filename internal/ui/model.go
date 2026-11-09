@@ -35,25 +35,28 @@ type taskResult struct {
 	kind       taskKind
 	generation uint64
 	entryID    int
+	pane       *editorPane
 	workspace  *jarlensworkspace.Workspace
 	result     decompile.Result
 	err        error
 }
 
 type document struct {
-	entryID    int
-	name       string
-	path       string
-	location   string
-	language   string
-	source     string
-	sourceInfo string
-	diagnostic string
-	revealName string
-	loading    bool
-	links      []classLink
-	editor     *text.Editor
-	code       components.CodeEditor
+	entryID             int
+	name                string
+	path                string
+	location            string
+	language            string
+	source              string
+	sourceInfo          string
+	diagnostic          string
+	revealName          string
+	pendingCenter       bool
+	pendingCenterOffset int
+	loading             bool
+	links               []classLink
+	editor              *text.Editor
+	code                components.CodeEditor
 }
 
 type treeLayoutCache struct {
@@ -70,10 +73,19 @@ const (
 	splitDown
 )
 
-type editorSplit struct {
-	doc    *document
-	editor *text.Editor
-	code   components.CodeEditor
+type editorPane struct {
+	id        int
+	parent    *editorPane
+	documents []*document
+	active    int
+	editor    *text.Editor
+	code      components.CodeEditor
+	axis      splitDirection
+	splitter  flex.SplitterState
+	width     float32
+	height    float32
+	first     *editorPane
+	second    *editorPane
 }
 
 type RecentStore interface {
@@ -81,11 +93,38 @@ type RecentStore interface {
 	Record(string) []string
 }
 
+type SettingsStore interface {
+	Load() jarlensworkspace.Settings
+	Save(jarlensworkspace.Settings)
+}
+
 type Model struct {
 	Theme          Appearance
 	RecentStore    RecentStore
+	SettingsStore  SettingsStore
 	MaximizeWindow func()
 	RestoreWindow  func()
+
+	settings                   jarlensworkspace.Settings
+	settingsDraft              jarlensworkspace.Settings
+	settingsJava               flex.Field
+	settingsFontSize           flex.Field
+	settingsSearch             flex.Field
+	settingsThemeSelect        flex.SelectState
+	settingsOpen               bool
+	settingsCategory           int
+	settingsQuery              string
+	settingsJavaText           string
+	settingsFontSizeText       string
+	settingsError              string
+	settingsAppearanceExpanded bool
+	settingsEditorExpanded     bool
+	settingsHistory            []int
+	settingsHistoryIndex       int
+	fontPickerOpen             bool
+	fontPickerTarget           int
+	fontPickerSearch           flex.Field
+	fontPickerFamilies         []string
 
 	view            flex.View
 	filter          flex.Field
@@ -117,16 +156,20 @@ type Model struct {
 	findIndex       int
 	goLineOpen      bool
 	tabsMenuOpen    bool
+	tabsMenuPane    *editorPane
 	focusSource     bool
+	focusPane       *editorPane
 
-	secondary         *editorSplit
-	splitAxis         splitDirection
-	focusSplit        bool
+	paneRoot          *editorPane
+	activePane        *editorPane
+	nextPaneID        int
 	tabsContextOpen   bool
+	tabsContextPane   *editorPane
 	tabsContextTab    int
 	tabsContextPoint  vivaui.Point
 	mainMenuOpen      bool
 	mainMenuFromTitle bool
+	mainMenuTitleRect vivaui.Rect
 	homeVisible       bool
 	recentProjects    []string
 	projectMenuScroll components.MenuScroll
@@ -147,6 +190,7 @@ type Model struct {
 	pending     *taskResult
 	generation  uint64
 	taskEntry   int
+	taskPane    *editorPane
 	cancel      context.CancelFunc
 	openURL     func(string) error
 }
@@ -158,6 +202,10 @@ func (m *Model) initialize() {
 	if m.RecentStore != nil {
 		m.recentProjects = m.RecentStore.Load()
 	}
+	m.settings = jarlensworkspace.DefaultSettings()
+	if m.SettingsStore != nil {
+		m.settings = m.SettingsStore.Load()
+	}
 	if m.split.Pos == 0 {
 		m.split.Pos = 300
 	}
@@ -167,6 +215,7 @@ func (m *Model) initialize() {
 	if m.engine == nil {
 		m.engine = vineflower.New()
 	}
+	m.applySettings(false)
 	if m.expanded == nil {
 		m.expanded = make(map[int]bool)
 	}
@@ -179,6 +228,7 @@ func (m *Model) initialize() {
 	m.taskEntry = -1
 	m.linkDownOffset = -1
 	m.tabsContextTab = -1
+	m.ensurePane()
 }
 
 func (m *Model) OpenPath(path string) {
@@ -217,7 +267,11 @@ func (m *Model) openPath(path string, maximize bool) {
 	m.mainMenuOpen = false
 	m.projectMenuOpen = false
 	m.homeVisible = false
-	m.secondary = nil
+	m.paneRoot = nil
+	m.activePane = nil
+	m.nextPaneID = 0
+	m.focusPane = nil
+	m.taskPane = nil
 	m.treeScrollX = 0
 	m.treeScrollGeometry = components.ScrollAreaGeometry{}
 	m.generation++
@@ -244,6 +298,7 @@ func (m *Model) startResource(entryID int) {
 }
 
 func (m *Model) startDocument(entryID int, revealName string, kind taskKind) {
+	m.ensurePane()
 	index := m.documentIndex(entryID)
 	if index < 0 {
 		entry := m.workspace.Archive.Entries[entryID]
@@ -271,6 +326,7 @@ func (m *Model) startDocument(entryID int, revealName string, kind taskKind) {
 	m.generation++
 	generation := m.generation
 	m.taskEntry = entryID
+	m.taskPane = m.activePane
 	doc.loading = true
 	doc.diagnostic = ""
 	m.source = ""
@@ -288,20 +344,22 @@ func (m *Model) startDocument(entryID int, revealName string, kind taskKind) {
 	m.cancel = cancel
 	workspace := m.workspace
 	engine := m.engine
+	m.syncActivePane()
+	pane := m.activePane
 	go func() {
 		defer cancel()
 		if kind == taskResource {
 			content, err := workspace.TextResource(entryID)
-			m.publish(&taskResult{kind: kind, generation: generation, entryID: entryID, result: decompile.Result{Source: content}, err: err})
+			m.publish(&taskResult{kind: kind, generation: generation, entryID: entryID, pane: pane, result: decompile.Result{Source: content}, err: err})
 			return
 		}
 		request, err := workspace.DecompileRequest(entryID)
 		if err != nil {
-			m.publish(&taskResult{kind: kind, generation: generation, entryID: entryID, err: err})
+			m.publish(&taskResult{kind: kind, generation: generation, entryID: entryID, pane: pane, err: err})
 			return
 		}
 		result, err := engine.Decompile(ctx, request)
-		m.publish(&taskResult{kind: kind, generation: generation, entryID: entryID, result: result, err: err})
+		m.publish(&taskResult{kind: kind, generation: generation, entryID: entryID, pane: pane, result: result, err: err})
 	}()
 }
 
@@ -313,7 +371,7 @@ func (m *Model) decompileTarget(entryID int) (int, string) {
 			continue
 		}
 		if node.Kind == archive.NodeClass {
-			revealName = strings.TrimSuffix(node.Name, filepath.Ext(node.Name))
+			revealName = nestedDeclarationName(node.Name)
 		}
 		for node.Parent >= 0 {
 			parent := m.workspace.Tree.Nodes[node.Parent]
@@ -322,7 +380,7 @@ func (m *Model) decompileTarget(entryID int) (int, string) {
 			}
 			targetID = parent.Entry
 			if revealName == "" {
-				revealName = strings.TrimSuffix(node.Name, filepath.Ext(node.Name))
+				revealName = nestedDeclarationName(parent.Name)
 			}
 			node = parent
 		}
@@ -372,6 +430,7 @@ func (m *Model) activateDocument(index int) {
 	m.code = doc.code
 	m.diagnostic = doc.diagnostic
 	m.status = "已打开 " + doc.name
+	m.syncActivePane()
 	m.revealProjectEntry(doc.entryID)
 }
 
@@ -424,11 +483,8 @@ func (m *Model) closeDocument(index int) {
 	if index < 0 || index >= len(m.documents) {
 		return
 	}
-	if m.busy && m.taskEntry == m.documents[index].entryID {
+	if m.busy && m.taskPane == m.activePane && m.taskEntry == m.documents[index].entryID {
 		m.cancelWork()
-	}
-	if m.secondary != nil && m.secondary.doc == m.documents[index] {
-		m.secondary = nil
 	}
 	m.documents = append(m.documents[:index], m.documents[index+1:]...)
 	wasActive := m.active == index
@@ -441,6 +497,8 @@ func (m *Model) closeDocument(index int) {
 		m.tabsMenuOpen = false
 		m.tabsContextOpen = false
 		m.clearCurrentDocument()
+		m.syncActivePane()
+		m.collapseEmptyPane(m.activePane)
 		return
 	}
 	if wasActive {
@@ -497,8 +555,8 @@ func (m *Model) stopCurrent() {
 		m.cancel()
 		m.cancel = nil
 	}
-	if index := m.documentIndex(m.taskEntry); index >= 0 {
-		m.documents[index].loading = false
+	if index := paneDocumentIndex(m.taskPane, m.taskEntry); index >= 0 {
+		m.taskPane.documents[index].loading = false
 	}
 }
 
@@ -509,9 +567,6 @@ func (m *Model) cancelWork() {
 	m.stopCurrent()
 	m.generation++
 	m.busy = false
-	if index := m.documentIndex(m.taskEntry); index >= 0 {
-		m.documents[index].loading = false
-	}
 	m.taskEntry = -1
 	m.status = "操作已取消"
 	m.diagnostic = ""
@@ -537,11 +592,11 @@ func (m *Model) wake() {
 	m.busy = false
 	m.cancel = nil
 	if result.err != nil {
-		if index := m.documentIndex(result.entryID); index >= 0 {
-			doc := m.documents[index]
+		if index := paneDocumentIndex(result.pane, result.entryID); index >= 0 {
+			doc := result.pane.documents[index]
 			doc.loading = false
 			doc.diagnostic = result.err.Error()
-			if index == m.active {
+			if result.pane == m.activePane && index == m.active {
 				m.diagnostic = doc.diagnostic
 			}
 		}
@@ -572,47 +627,17 @@ func (m *Model) wake() {
 		m.status = fmt.Sprintf("%s · %d 个类", filepath.Base(m.workspace.Archive.Path), classes)
 		m.diagnostic = ""
 	case taskDecompile, taskResource:
-		index := m.documentIndex(result.entryID)
-		if index < 0 {
-			return
-		}
-		doc := m.documents[index]
-		doc.loading = false
-		doc.source = result.result.Source
-		doc.sourceInfo = "反编译引擎：" + result.result.Engine + " " + result.result.EngineVersion
-		doc.diagnostic = ""
-		doc.editor = text.NewEditor(doc.source)
-		doc.code = components.CodeEditor{}
-		doc.links = buildClassLinks(doc.source, doc.path, m.classLinks)
-		if index == m.active {
-			m.source = doc.source
-			m.sourceInfo = doc.sourceInfo
-			m.editor = doc.editor
-			m.code = doc.code
-			m.diagnostic = ""
-		}
-		if doc.revealName != "" {
-			m.revealDocument(doc, doc.revealName)
-			doc.revealName = ""
-		}
-		if result.kind == taskResource {
-			doc.sourceInfo = "文本资源 · UTF-8"
-			if index == m.active {
-				m.sourceInfo = doc.sourceInfo
-			}
-			m.status = "已打开 " + doc.name
-		} else {
-			m.status = result.result.Engine + " " + result.result.EngineVersion
-		}
+		m.applyPaneResult(result)
 	}
 	m.taskEntry = -1
 }
 
 func (m *Model) saveSource() {
-	if m.source == "" || m.workspace == nil || m.selected < 0 {
+	doc := m.activeDocument()
+	if doc == nil || doc.source == "" || m.workspace == nil {
 		return
 	}
-	name := m.currentDocument().name
+	name := doc.name
 	extension := filepath.Ext(name)
 	if strings.EqualFold(extension, ".class") {
 		name = strings.TrimSuffix(name, extension) + ".java"
@@ -632,7 +657,7 @@ func (m *Model) saveSource() {
 	if path == "" {
 		return
 	}
-	if err := os.WriteFile(path, []byte(m.source), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte(doc.source), 0o600); err != nil {
 		m.fail("无法保存源码", err)
 		return
 	}

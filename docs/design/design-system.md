@@ -46,11 +46,8 @@ With no archive open, Home is one centered main region without the project tool
 window, editor panes, or splitters. It provides the Open action, a drag-and-drop
 hint, and recent projects with their names and paths. Choosing a file or a recent
 project from Home expands the native window to the screen and replaces Home with
-the full workbench. The workspace switcher also contains a home-icon JarLens Home
-action below Open. Returning Home restores the prior window size and position and
-retains the current workspace and documents; choosing Current project restores
-that workbench without reopening the archive. On the next launch, the most recent
-successfully opened archive opens directly instead of showing Home. The normal
+the full workbench. On the next launch, the most recent successfully
+opened archive opens directly when startup restoration is enabled. The normal
 window placement and maximized state persist in the user configuration directory;
 a command-line archive argument takes precedence over startup restoration.
 
@@ -58,11 +55,13 @@ The titlebar is a single integrated Viva `WindowCustomTitlebar`, not a native
 system titlebar above an application toolbar. Its empty area moves the window.
 `app.TitlebarInsets` reserves platform controls, and themed minimize, maximize,
 restore, and close controls retain their native window behavior and accessible
-names. The left cluster follows OpenIDEA: the JarLens mark and a hamburger main
-menu. Home shows a monochrome home icon and Home label without a dropdown; an open
+names. The left cluster starts with the JarLens mark and has no hamburger menu.
+Home shows a monochrome home icon and Home label without a dropdown; an open
 workspace instead shows the current archive title with a dropdown chevron. The title carries its own
-initials badge without a tinted background. Both triggers open the workspace
-switcher: Open, the current archive, and recent archives with their paths. Each
+initials badge without a tinted background. The archive title opens the project
+switcher with Open, JarLens Home, the current project, and recent projects.
+Settings is available through the gear button in the right-hand toolbar icon
+group and through Primary+Alt+S. Each
 project row has a deterministic colored initials badge based on its filename;
 rows have no selected background until the user interacts with them. The 12 most
 recent successfully opened workspaces persist in the user configuration
@@ -74,10 +73,11 @@ areas. The GitHub action opens the official repository through the operating
 system; the sun/moon action switches appearance. Both expose stable accessible
 names and keyboard focus rather than relying on icon recognition.
 
-Tool actions stay monochrome for consistency. Package, class, resource, status, and
-brand icons use OpenIDEA's Material file and folder palette, with native vector or
-badge geometry in `internal/ui/file_icons.go`. Color supports recognition but never
-replaces labels, selection state, or accessible text.
+Tool actions stay monochrome for consistency. Package, class, and resource icons
+follow OpenIDEA's default IntelliJ Platform mapping. Their SVG sources are compiled
+to native vectors in `internal/ui/openideaicons`; `internal/ui/file_icons.go`
+selects file types and the matching light or dark palette. Color supports
+recognition but never replaces labels, selection state, or accessible text.
 
 - The activity stripe is removed. The project window keeps its outer margins and
   the 6-pixel editor gap. It contains the lazy archive/package/class hierarchy. Its title
@@ -90,9 +90,13 @@ replaces labels, selection state, or accessible text.
   drags. The current document keeps the blue selection after navigation; hover is lighter and does not
   replace it. Nested `Outer$Inner.class` entries are
   grouped under `Outer.class` while retaining
-  their real entry identity. Selecting any class opens its outermost document,
-  selects the declaration name, focuses the editor, and leaves a blinking caret at
-  the start of the name instead of creating another tab for a nested class.
+  their real entry identity. Anonymous and local classes retain their full binary
+  names (`Outer$1.class`, `Outer$1Local.class`) instead of showing numeric-only
+  labels. Selecting any class opens its outermost document; anonymous classes
+  select the nearest named outer declaration and local classes select their real
+  declaration name. Declaration navigation centers its line in the editor viewport when
+  scrolling room allows, focuses the editor, and leaves a blinking caret at the
+  start of the name instead of creating another tab for a nested class.
 - The editor owns multiple independent document tabs, source, diagnostics, and
   search. Repeatedly opening a class activates its existing tab; each tab retains
   its editor and scroll state. Tabs follow OpenIDEA's actual editor component:
@@ -106,10 +110,17 @@ replaces labels, selection state, or accessible text.
   follows OpenIDEA's 24-pixel rows, 180-pixel minimum width, strong foreground,
   10-pixel surface and 5-pixel current-row radius. Its first action is current when
   opened, and the vertical-more glyph uses the reference theme's warning yellow.
-  Right-clicking a tab groups close actions with Split Right and Split Down. Splitting
-  creates a second read-only editor with independent caret, selection, and scrolling;
-  closing its document removes the split. Switching tabs updates the status bar to
-  the visible document.
+  Right-clicking a tab groups close actions with Split Right and Split Down. Editors
+  form a recursive pane tree rather than a fixed primary/secondary pair, so any
+  pane can be split repeatedly in either direction. Each leaf is a complete panel
+  with its own tab list, provenance banner, active document, caret, selection, and
+  scrolling. A 6-pixel frame-colored splitter separates adjacent panels; each
+  parent node owns its position, so nested panes resize independently by pointer
+  drag or the keyboard arrows. The project
+  tree opens documents in the active pane, and tab close actions and the primary
+  shortcut+W affect only that pane. Closing its last tab collapses only that leaf
+  and promotes its sibling subtree without discarding documents. Switching tabs
+  updates the status bar to the visible document.
 - Text resources open in the same document workspace with their original filename,
   language-aware presentation, and export suffix. Binary resources are rejected
   with a diagnostic rather than sent to a decompiler.
@@ -159,8 +170,20 @@ identity, but workbench selection and focus follow the semantic blue accent.
 - Editor syntax colors use theme-linked, separately identifiable schemes for
   Java and supported text resources.
 
-Theme persistence and operating-system synchronization are planned; neither is
-currently claimed as implemented.
+Theme choice, UI font, code font and size, line numbers, current-line highlight,
+Java executable, and startup restoration persist in `settings.json` in the user
+configuration directory. The settings dialog follows OpenIDEA: a 240-pixel page
+tree, breadcrumbs with back/forward history, per-page Reset, titled section
+separators, compact form rows, checkboxes, and an inline footer error. Its tree
+groups Appearance and System Settings under Appearance and Behavior, and Font
+and General under Editor. Search filters pages and highlights matching labels;
+Escape clears a non-empty query before dismissing the dialog, while Up/Down
+changes pages without leaving the search field. Edits are staged and mark their
+pages dirty. Apply is enabled only for pending changes and saves without closing;
+OK saves and closes; Cancel discards unapplied edits. The last selected page is
+remembered across openings. The current UI language is Simplified Chinese; an
+English switch is not claimed. Operating-system theme synchronization remains
+future work.
 
 ## Typography and source
 

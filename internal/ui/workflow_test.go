@@ -339,6 +339,49 @@ func TestMultipleDocumentsKeepIndependentState(t *testing.T) {
 	}
 }
 
+func rightClickControl(t *testing.T, driver *app.Driver, id ui.ID) {
+	t.Helper()
+	for _, hit := range driver.Snapshot().Hits {
+		if hit.ID == id {
+			if err := driver.ClickButton(hit.Bounds.X+hit.Bounds.Width/2, hit.Bounds.Y+hit.Bounds.Height/2, ui.PointerButtonSecondary); err != nil {
+				t.Fatal(err)
+			}
+			return
+		}
+	}
+	t.Fatalf("control %v is not painted", id)
+}
+
+func dragControl(t *testing.T, driver *app.Driver, id ui.ID, dx, dy float32) {
+	t.Helper()
+	for _, hit := range driver.Snapshot().Hits {
+		if hit.ID != id {
+			continue
+		}
+		x := hit.Bounds.X + hit.Bounds.Width/2
+		y := hit.Bounds.Y + hit.Bounds.Height/2
+		if err := driver.Press(x, y, ui.PointerButtonPrimary); err != nil {
+			t.Fatal(err)
+		}
+		for step := 1; step <= 8; step++ {
+			if err := driver.Move(x+dx*float32(step)/8, y+dy*float32(step)/8); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if err := driver.Release(x+dx, y+dy, ui.PointerButtonPrimary); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	t.Fatalf("splitter %v is not painted", id)
+}
+
+func editorPaneLeaves(m *Model) []*editorPane {
+	var leaves []*editorPane
+	m.walkPanes(func(pane *editorPane) { leaves = append(leaves, pane) })
+	return leaves
+}
+
 func TestTabContextMenuSplitsEditors(t *testing.T) {
 	m := &Model{engine: &fakeEngine{source: "package example;\npublic class Hello {\n  void greet() {}\n}\n"}}
 	driver := newDriver(t, m)
@@ -352,19 +395,8 @@ func TestTabContextMenuSplitsEditors(t *testing.T) {
 		click(t, driver, projectNodes.At(findNodeID(t, m, "Hello.class")))
 		pumpUntil(t, driver, func() bool { return m.source != "" })
 	}
-	rightClickTab := func() {
-		for _, hit := range driver.Snapshot().Hits {
-			if hit.ID == editorTabs.At(0) {
-				if err := driver.ClickButton(hit.Bounds.X+hit.Bounds.Width/2, hit.Bounds.Y+hit.Bounds.Height/2, ui.PointerButtonSecondary); err != nil {
-					t.Fatal(err)
-				}
-				return
-			}
-		}
-		t.Fatal("editor tab is not painted")
-	}
 	openHello()
-	rightClickTab()
+	rightClickControl(t, driver, editorTabs.At(0))
 	for _, label := range []string{"关闭", "关闭其他标签页", "关闭全部标签页", "关闭左侧标签页", "关闭右侧标签页", "向右拆分", "向下拆分"} {
 		if !shows(driver, label) {
 			t.Errorf("tab context menu does not show %q", label)
@@ -373,13 +405,10 @@ func TestTabContextMenuSplitsEditors(t *testing.T) {
 	if err := driver.Key(ui.KeyEscape, 0); err != nil {
 		t.Fatal(err)
 	}
-	if m.tabsContextOpen {
-		t.Fatal("Escape did not close the tab context menu")
-	}
-	rightClickTab()
+	rightClickControl(t, driver, editorTabs.At(0))
 	click(t, driver, editorTabSplitRight)
-	if m.secondary == nil || m.splitAxis != splitRight {
-		t.Fatal("Split Right did not create a secondary editor")
+	if m.paneRoot.leaf() || m.paneRoot.axis != splitRight || len(editorPaneLeaves(m)) != 2 {
+		t.Fatal("Split Right did not create two independent panes")
 	}
 	var primaryBounds, secondaryBounds ui.Rect
 	for _, hit := range driver.Snapshot().Hits {
@@ -390,8 +419,8 @@ func TestTabContextMenuSplitsEditors(t *testing.T) {
 			secondaryBounds = hit.Bounds
 		}
 	}
-	if secondaryBounds.X <= primaryBounds.X+primaryBounds.Width {
-		t.Fatalf("right split is not beside the primary editor: %+v %+v", primaryBounds, secondaryBounds)
+	if gap := secondaryBounds.X - (primaryBounds.X + primaryBounds.Width); gap != 6 {
+		t.Fatalf("right split gap = %.1fpx, want 6px: primary=%+v secondary=%+v", gap, primaryBounds, secondaryBounds)
 	}
 	if err := driver.Pump(); err != nil {
 		t.Fatal(err)
@@ -399,47 +428,151 @@ func TestTabContextMenuSplitsEditors(t *testing.T) {
 	if focused := driver.Snapshot().Focused; focused != splitSourceEditor {
 		t.Fatalf("new split editor did not receive focus: %v", focused)
 	}
-	primaryCaret := m.editor.Caret()
-	click(t, driver, splitSourceEditor)
-	before := m.secondary.editor.Caret()
+	primaryEditor := m.paneRoot.first.editor
+	primaryCaret := primaryEditor.Caret()
+	before := m.editor.Caret()
 	if err := driver.Key(ui.KeyDown, 0); err != nil {
 		t.Fatal(err)
 	}
-	if m.secondary.editor.Caret() == before || m.editor.Caret() != primaryCaret {
-		t.Fatal("split editor caret is not independent of the primary editor")
+	if m.editor.Caret() == before || primaryEditor.Caret() != primaryCaret {
+		t.Fatal("split editor caret is not independent")
 	}
 
 	m.closeDocument(0)
 	if err := driver.Move(0, 0); err != nil {
 		t.Fatal(err)
 	}
-	if m.secondary != nil {
-		t.Fatal("closing the document retained its split model")
-	}
-	if hasHit(driver, splitSourceEditor, "Hello.class") {
-		t.Fatal("closing the document retained its split editor hit")
+	if !m.paneRoot.leaf() || len(m.documents) != 1 {
+		t.Fatal("closing the split document did not collapse the pane tree")
 	}
 	openHello()
-	rightClickTab()
+	rightClickControl(t, driver, editorTabs.At(0))
 	click(t, driver, editorTabSplitDown)
-	if m.secondary == nil || m.splitAxis != splitDown {
-		t.Fatal("Split Down did not create a secondary editor")
+	if m.paneRoot.leaf() || m.paneRoot.axis != splitDown {
+		t.Fatal("Split Down did not create a horizontal pane split")
 	}
+	gutter := false
 	for _, hit := range driver.Snapshot().Hits {
 		if hit.ID == sourceEditor {
 			primaryBounds = hit.Bounds
 		}
-		if hit.ID == splitSourceEditor {
-			secondaryBounds = hit.Bounds
+	}
+	for _, primitive := range driver.Snapshot().Primitives {
+		if primitive.Bounds.X == primaryBounds.X && primitive.Bounds.Y == primaryBounds.Y+primaryBounds.Height &&
+			primitive.Bounds.Width == primaryBounds.Width && primitive.Bounds.Height == 6 && primitive.Color == WorkspaceTheme(m.Theme).Card {
+			gutter = true
 		}
 	}
-	if secondaryBounds.Y <= primaryBounds.Y+primaryBounds.Height {
-		t.Fatalf("down split is not below the primary editor: %+v %+v", primaryBounds, secondaryBounds)
+	if !gutter {
+		t.Fatal("down split does not paint its visible 6px gutter")
 	}
-	rightClickTab()
+	rightClickControl(t, driver, editorTabs.At(0))
 	click(t, driver, editorTabCloseCurrent)
-	if len(m.documents) != 0 || m.secondary != nil {
-		t.Fatal("context-menu Close did not close the document and its split")
+	if !m.paneRoot.leaf() || len(m.documents) != 1 {
+		t.Fatal("closing one pane did not preserve and promote the other")
+	}
+	m.closeDocument(0)
+	if len(m.documents) != 0 {
+		t.Fatal("closing the remaining document did not empty the editor")
+	}
+}
+
+func TestSplitEditorsHaveIndependentTabsAndDocuments(t *testing.T) {
+	engine := &fakeEngine{sources: map[string]string{
+		"example/Hello.class": "package example;\npublic class Hello {}\n",
+		"example/World.class": "package example;\npublic class World {}\n",
+	}}
+	m := &Model{engine: engine}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.OpenPath(writeMultiClassJAR(t))
+	pumpUntil(t, driver, func() bool { return m.workspace != nil })
+	click(t, driver, projectNodes.At(findNodeID(t, m, "example")))
+	click(t, driver, projectNodes.At(findNodeID(t, m, "Hello.class")))
+	pumpUntil(t, driver, func() bool { return m.source != "" })
+	rightClickControl(t, driver, editorTabs.At(0))
+	click(t, driver, editorTabSplitRight)
+	secondary := m.activePane
+	click(t, driver, projectNodes.At(findNodeID(t, m, "World.class")))
+	pumpUntil(t, driver, func() bool {
+		return secondary.current() != nil && secondary.current().source == engine.sources["example/World.class"]
+	})
+	primary := m.paneRoot.first
+	if primary.current().source != engine.sources["example/Hello.class"] || len(primary.documents) != 1 {
+		t.Fatal("opening a document in one pane changed the other")
+	}
+	if len(secondary.documents) != 2 || !hasHit(driver, splitEditorTabs.At(0), "Hello.class") || !hasHit(driver, splitEditorTabs.At(1), "World.class") {
+		t.Fatalf("secondary tabs: documents=%d hello=%v world=%v active=%d root=%+v", len(secondary.documents), hasHit(driver, splitEditorTabs.At(0), "Hello.class"), hasHit(driver, splitEditorTabs.At(1), "World.class"), secondary.active, m.paneRoot)
+	}
+
+	click(t, driver, editorTabs.At(0))
+	click(t, driver, projectNodes.At(findNodeID(t, m, "World.class")))
+	pumpUntil(t, driver, func() bool { return m.source == engine.sources["example/World.class"] })
+	if secondary.current().name != "World.class" || len(secondary.documents) != 2 {
+		t.Fatal("primary navigation changed the secondary pane")
+	}
+	click(t, driver, splitEditorTabs.At(0))
+	if m.activePane != secondary || secondary.current().name != "Hello.class" || primary.current().name != "World.class" {
+		t.Fatalf("tab activation: samePane=%v secondary=%s primary=%s", m.activePane == secondary, secondary.current().name, primary.current().name)
+	}
+	click(t, driver, splitEditorTabClose.At(0))
+	if len(secondary.documents) != 1 || secondary.current().name != "World.class" || len(primary.documents) != 2 {
+		t.Fatal("closing a tab affected the other pane")
+	}
+	handled, err := driver.ShortcutChord(ui.ModifierControl, 'w')
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !handled || !m.paneRoot.leaf() || len(m.documents) != 2 || m.currentDocument().name != "World.class" {
+		t.Fatal("Ctrl+W did not close only the active pane")
+	}
+}
+
+func TestEditorsSplitRepeatedlyInMixedDirections(t *testing.T) {
+	m := &Model{engine: &fakeEngine{source: "package example;\npublic class Hello {}\n"}}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.OpenPath(writeWorkflowJAR(t))
+	pumpUntil(t, driver, func() bool { return m.workspace != nil })
+	click(t, driver, projectNodes.At(findNodeID(t, m, "example")))
+	click(t, driver, projectNodes.At(findNodeID(t, m, "Hello.class")))
+	pumpUntil(t, driver, func() bool { return m.source != "" })
+
+	rightClickControl(t, driver, editorTabs.At(0))
+	click(t, driver, editorTabSplitRight)
+	rightClickControl(t, driver, splitEditorTabs.At(0))
+	click(t, driver, editorTabSplitDown)
+	rightClickControl(t, driver, extraEditorTabs.At(2000))
+	click(t, driver, editorTabSplitRight)
+	if got := len(editorPaneLeaves(m)); got != 4 {
+		t.Fatalf("three consecutive splits produced %d panes, want 4", got)
+	}
+	if !hasHit(driver, splitSourceEditors.At(3), "Hello.class") {
+		t.Fatal("newest nested split has no independent source editor")
+	}
+	rootPosition := m.paneRoot.splitter.Pos
+	dragControl(t, driver, editorPaneSplitters.At(0), 40, 0)
+	if m.paneRoot.splitter.Pos <= rootPosition {
+		t.Fatal("root splitter did not resize its left pane")
+	}
+	nested := m.paneRoot.second
+	nestedPosition := nested.splitter.Pos
+	rootPosition = m.paneRoot.splitter.Pos
+	dragControl(t, driver, editorPaneSplitters.At(1), 0, 30)
+	if nested.splitter.Pos <= nestedPosition || m.paneRoot.splitter.Pos != rootPosition {
+		t.Fatal("nested splitter changed the wrong pane or moved its parent")
+	}
+	handled, err := driver.ShortcutChord(ui.ModifierControl, 'w')
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !handled || len(editorPaneLeaves(m)) != 3 {
+		t.Fatal("closing a nested split did not collapse only its own pane")
+	}
+	for _, pane := range editorPaneLeaves(m) {
+		if pane.current() == nil || pane.current().name != "Hello.class" {
+			t.Fatal("nested split collapse discarded another pane's document")
+		}
 	}
 }
 
@@ -782,6 +915,35 @@ func TestNestedClassDisclosureAndOpen(t *testing.T) {
 	}
 }
 
+func TestAnonymousAndLocalClassesOpenOuterDocument(t *testing.T) {
+	source := "public class Hello {\n  void run() {\n    class Local {}\n  }\n}\n"
+	m := &Model{engine: &fakeEngine{source: source}}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.OpenPath(writeClassJAR(t, "example/Hello.class", "example/Hello$1.class", "example/Hello$1Local.class"))
+	pumpUntil(t, driver, func() bool { return m.workspace != nil })
+	click(t, driver, projectNodes.At(findNodeID(t, m, "example")))
+	outerID := findNodeID(t, m, "Hello.class")
+	click(t, driver, projectDisclosures.At(outerID))
+
+	anonymousID := findNodeID(t, m, "Hello$1.class")
+	click(t, driver, projectNodes.At(anonymousID))
+	pumpUntil(t, driver, func() bool { return m.source != "" })
+	selection := m.editor.Selection()
+	if got := m.source[m.editor.ByteOffset(selection.Start):m.editor.ByteOffset(selection.End)]; got != "Hello" {
+		t.Fatalf("anonymous class selected %q instead of its outer declaration", got)
+	}
+	if len(m.documents) != 1 || m.documents[0].name != "Hello.class" {
+		t.Fatal("anonymous class did not reuse its outer document")
+	}
+
+	click(t, driver, projectNodes.At(findNodeID(t, m, "Hello$1Local.class")))
+	selection = m.editor.Selection()
+	if got := m.source[m.editor.ByteOffset(selection.Start):m.editor.ByteOffset(selection.End)]; got != "Local" {
+		t.Fatalf("local class selected %q instead of its declaration", got)
+	}
+}
+
 func TestProjectTreeLongNamesScrollHorizontally(t *testing.T) {
 	const name = "ArchetypeEmbodimentIntegrationConfigWithLongNestedName.class"
 	m := &Model{engine: &fakeEngine{source: "public class Example {}\n"}}
@@ -843,8 +1005,8 @@ func TestProjectTreeLongNamesScrollHorizontally(t *testing.T) {
 	}
 	click(t, driver, projectNodes.At(findNodeID(t, m, name)))
 	pumpUntil(t, driver, func() bool { return m.source != "" })
-	if !shows(driver, "CL") {
-		t.Fatal("class badge text was clipped")
+	if document := m.currentDocument(); document == nil || document.path != "org/example/"+name {
+		t.Fatal("clicking the horizontally scrolled class did not open its document")
 	}
 	wideSelection := false
 	for _, primitive := range driver.Snapshot().Primitives {

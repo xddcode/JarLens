@@ -8,72 +8,111 @@ import (
 	"github.com/vivaui/viva/app"
 	"github.com/vivaui/viva/components"
 	"github.com/vivaui/viva/flex"
-	"github.com/vivaui/viva/text"
 	vivaui "github.com/vivaui/viva/ui"
 	"github.com/xddcode/jarlens/internal/archive"
 )
 
 var (
-	tree                           = vivaui.Tree{}
-	workbench                      = tree.Feature("workbench")
-	themeToggle                    = tree.ID(workbench, "theme-toggle")
-	githubOpen                     = tree.ID(workbench, "github-open")
-	archiveOpen                    = tree.ID(workbench, "archive-open")
-	archiveSave                    = tree.ID(workbench, "archive-save")
-	workCancel                     = tree.ID(workbench, "work-cancel")
-	mainMenuButton                 = tree.ID(workbench, "main-menu-button")
-	mainMenuTitle                  = tree.ID(workbench, "main-menu-title")
-	mainMenu                       = tree.ID(workbench, "main-menu")
-	mainMenuDismiss                = tree.ID(workbench, "main-menu-dismiss")
-	mainMenuOpenFile               = tree.ID(workbench, "main-menu-open-file")
-	mainMenuHome                   = tree.ID(workbench, "main-menu-home")
-	mainMenuCurrentProject         = tree.ID(workbench, "main-menu-current-project")
-	homeOpen                       = tree.ID(workbench, "home-open")
-	homeRecentList                 = tree.ID(workbench, "home-recent-list")
-	homeRecentProjects             = tree.Sub(workbench, tree.Name("home-recent-projects"))
-	projectMenuScrollbar           = tree.ID(workbench, "project-menu-scrollbar")
-	recentProjects                 = tree.Sub(workbench, tree.Name("recent-projects"))
-	projectTree                    = tree.ID(workbench, "project-tree")
-	projectFilter                  = tree.ID(workbench, "project-filter")
-	projectSearch                  = tree.ID(workbench, "project-search")
-	projectTitle                   = tree.ID(workbench, "project-title")
-	projectMenu                    = tree.ID(workbench, "project-menu")
-	projectMenuDismiss             = tree.ID(workbench, "project-menu-dismiss")
-	projectExpandAll               = tree.ID(workbench, "project-expand-all")
-	projectCollapseAll             = tree.ID(workbench, "project-collapse-all")
-	projectFilterMenu              = tree.ID(workbench, "project-filter-menu")
-	projectSplitter                = tree.ID(workbench, "project-splitter")
-	projectHorizontalScrollbar     = tree.ID(workbench, "project-horizontal-scrollbar")
-	sourceEditor                   = tree.ID(workbench, "source-editor")
-	sourceScrollbar                = tree.ID(workbench, "source-scrollbar")
-	sourceHorizontalScrollbar      = tree.ID(workbench, "source-horizontal-scrollbar")
-	splitSourceEditor              = tree.ID(workbench, "split-source-editor")
-	splitSourceScrollbar           = tree.ID(workbench, "split-source-scrollbar")
-	splitSourceHorizontalScrollbar = tree.ID(workbench, "split-source-horizontal-scrollbar")
-	projectNodes                   = tree.Sub(workbench, tree.Name("project-nodes"))
-	projectDisclosures             = tree.Sub(workbench, tree.Name("project-disclosures"))
-	editorTabs                     = tree.Sub(workbench, tree.Name("editor-tabs"))
-	editorTabClose                 = tree.Sub(workbench, tree.Name("editor-tab-close"))
-	editorTabsMenu                 = tree.ID(workbench, "editor-tabs-menu")
-	editorTabsMenuOpen             = tree.ID(workbench, "editor-tabs-menu-open")
-	editorTabsMenuDismiss          = tree.ID(workbench, "editor-tabs-menu-dismiss")
-	editorTabsCloseAll             = tree.ID(workbench, "editor-tabs-close-all")
-	editorTabsCloseOthers          = tree.ID(workbench, "editor-tabs-close-others")
-	editorTabsCloseLeft            = tree.ID(workbench, "editor-tabs-close-left")
-	editorTabsCloseRight           = tree.ID(workbench, "editor-tabs-close-right")
-	editorTabContextMenu           = tree.ID(workbench, "editor-tab-context-menu")
-	editorTabContextDismiss        = tree.ID(workbench, "editor-tab-context-dismiss")
-	editorTabCloseCurrent          = tree.ID(workbench, "editor-tab-close-current")
-	editorTabSplitRight            = tree.ID(workbench, "editor-tab-split-right")
-	editorTabSplitDown             = tree.ID(workbench, "editor-tab-split-down")
-	sourceFind                     = tree.ID(workbench, "source-find")
-	findPrevious                   = tree.ID(workbench, "find-previous")
-	findNext                       = tree.ID(workbench, "find-next")
-	findClose                      = tree.ID(workbench, "find-close")
-	goLineDialog                   = tree.ID(workbench, "go-line-dialog")
-	goLineInput                    = tree.ID(workbench, "go-line-input")
-	goLineConfirm                  = tree.ID(workbench, "go-line-confirm")
-	goLineClose                    = tree.ID(workbench, "go-line-close")
+	tree                            = vivaui.Tree{}
+	workbench                       = tree.Feature("workbench")
+	themeToggle                     = tree.ID(workbench, "theme-toggle")
+	settingsButton                  = tree.ID(workbench, "settings-button")
+	githubOpen                      = tree.ID(workbench, "github-open")
+	archiveOpen                     = tree.ID(workbench, "archive-open")
+	archiveSave                     = tree.ID(workbench, "archive-save")
+	workCancel                      = tree.ID(workbench, "work-cancel")
+	mainMenuTitle                   = tree.ID(workbench, "main-menu-title")
+	mainMenuOpenFile                = tree.ID(workbench, "main-menu-open-file")
+	mainMenuCurrentProject          = tree.ID(workbench, "main-menu-current-project")
+	projectSwitcher                 = tree.ID(workbench, "project-switcher")
+	projectSwitcherDismiss          = tree.ID(workbench, "project-switcher-dismiss")
+	projectSwitcherHome             = tree.ID(workbench, "project-switcher-home")
+	homeOpen                        = tree.ID(workbench, "home-open")
+	homeRecentList                  = tree.ID(workbench, "home-recent-list")
+	homeRecentProjects              = tree.Sub(workbench, tree.Name("home-recent-projects"))
+	projectMenuScrollbar            = tree.ID(workbench, "project-menu-scrollbar")
+	recentProjects                  = tree.Sub(workbench, tree.Name("recent-projects"))
+	projectTree                     = tree.ID(workbench, "project-tree")
+	projectFilter                   = tree.ID(workbench, "project-filter")
+	projectSearch                   = tree.ID(workbench, "project-search")
+	projectTitle                    = tree.ID(workbench, "project-title")
+	projectMenu                     = tree.ID(workbench, "project-menu")
+	projectMenuDismiss              = tree.ID(workbench, "project-menu-dismiss")
+	projectExpandAll                = tree.ID(workbench, "project-expand-all")
+	projectCollapseAll              = tree.ID(workbench, "project-collapse-all")
+	projectFilterMenu               = tree.ID(workbench, "project-filter-menu")
+	projectSplitter                 = tree.ID(workbench, "project-splitter")
+	projectHorizontalScrollbar      = tree.ID(workbench, "project-horizontal-scrollbar")
+	sourceEditor                    = tree.ID(workbench, "source-editor")
+	sourceScrollbar                 = tree.ID(workbench, "source-scrollbar")
+	sourceHorizontalScrollbar       = tree.ID(workbench, "source-horizontal-scrollbar")
+	splitSourceEditor               = tree.ID(workbench, "split-source-editor")
+	splitSourceScrollbar            = tree.ID(workbench, "split-source-scrollbar")
+	splitSourceHorizontalScrollbar  = tree.ID(workbench, "split-source-horizontal-scrollbar")
+	projectNodes                    = tree.Sub(workbench, tree.Name("project-nodes"))
+	projectDisclosures              = tree.Sub(workbench, tree.Name("project-disclosures"))
+	editorTabs                      = tree.Sub(workbench, tree.Name("editor-tabs"))
+	editorTabClose                  = tree.Sub(workbench, tree.Name("editor-tab-close"))
+	editorTabsMenu                  = tree.ID(workbench, "editor-tabs-menu")
+	editorTabsMenuOpen              = tree.ID(workbench, "editor-tabs-menu-open")
+	editorTabsMenuDismiss           = tree.ID(workbench, "editor-tabs-menu-dismiss")
+	editorTabsCloseAll              = tree.ID(workbench, "editor-tabs-close-all")
+	editorTabsCloseOthers           = tree.ID(workbench, "editor-tabs-close-others")
+	editorTabsCloseLeft             = tree.ID(workbench, "editor-tabs-close-left")
+	editorTabsCloseRight            = tree.ID(workbench, "editor-tabs-close-right")
+	editorTabContextMenu            = tree.ID(workbench, "editor-tab-context-menu")
+	editorTabContextDismiss         = tree.ID(workbench, "editor-tab-context-dismiss")
+	editorTabCloseCurrent           = tree.ID(workbench, "editor-tab-close-current")
+	editorTabSplitRight             = tree.ID(workbench, "editor-tab-split-right")
+	editorTabSplitDown              = tree.ID(workbench, "editor-tab-split-down")
+	splitEditorTabs                 = tree.Sub(workbench, tree.Name("split-editor-tabs"))
+	splitEditorTabClose             = tree.Sub(workbench, tree.Name("split-editor-tab-close"))
+	splitEditorTabsMenuOpen         = tree.ID(workbench, "split-editor-tabs-menu-open")
+	splitSourceEditors              = tree.Sub(workbench, tree.Name("split-source-editors"))
+	splitSourceScrollbars           = tree.Sub(workbench, tree.Name("split-source-scrollbars"))
+	splitSourceHorizontalScrollbars = tree.Sub(workbench, tree.Name("split-source-horizontal-scrollbars"))
+	extraEditorTabs                 = tree.Sub(workbench, tree.Name("extra-editor-tabs"))
+	extraEditorTabClose             = tree.Sub(workbench, tree.Name("extra-editor-tab-close"))
+	extraEditorTabMenus             = tree.Sub(workbench, tree.Name("extra-editor-tab-menus"))
+	editorPaneSplitters             = tree.Sub(workbench, tree.Name("editor-pane-splitters"))
+	sourceFind                      = tree.ID(workbench, "source-find")
+	findPrevious                    = tree.ID(workbench, "find-previous")
+	findNext                        = tree.ID(workbench, "find-next")
+	findClose                       = tree.ID(workbench, "find-close")
+	goLineDialog                    = tree.ID(workbench, "go-line-dialog")
+	goLineInput                     = tree.ID(workbench, "go-line-input")
+	goLineConfirm                   = tree.ID(workbench, "go-line-confirm")
+	goLineClose                     = tree.ID(workbench, "go-line-close")
+	settingsDialog                  = tree.ID(workbench, "settings-dialog")
+	settingsTheme                   = tree.Sub(workbench, tree.Name("settings-theme"))
+	settingsNav                     = tree.Sub(workbench, tree.Name("settings-nav"))
+	settingsNavDisclosures          = tree.Sub(workbench, tree.Name("settings-nav-disclosures"))
+	settingsGroupLinks              = tree.Sub(workbench, tree.Name("settings-group-links"))
+	settingsSearch                  = tree.ID(workbench, "settings-search")
+	settingsNavScroll               = tree.ID(workbench, "settings-nav-scroll")
+	settingsContentScroll           = tree.ID(workbench, "settings-content-scroll")
+	settingsBack                    = tree.ID(workbench, "settings-back")
+	settingsForward                 = tree.ID(workbench, "settings-forward")
+	settingsReset                   = tree.ID(workbench, "settings-reset")
+	settingsUIFont                  = tree.Sub(workbench, tree.Name("settings-ui-font"))
+	settingsCodeFont                = tree.Sub(workbench, tree.Name("settings-code-font"))
+	settingsLineNumbers             = tree.ID(workbench, "settings-line-numbers")
+	settingsCurrentLine             = tree.ID(workbench, "settings-current-line")
+	settingsApply                   = tree.ID(workbench, "settings-apply")
+	settingsJavaPath                = tree.ID(workbench, "settings-java-path")
+	settingsFontSizeInput           = tree.ID(workbench, "settings-font-size-input")
+	settingsUIFontChoose            = tree.ID(workbench, "settings-ui-font-choose")
+	settingsCodeFontChoose          = tree.ID(workbench, "settings-code-font-choose")
+	fontPickerDialog                = tree.ID(workbench, "font-picker-dialog")
+	fontPickerDismiss               = tree.ID(workbench, "font-picker-dismiss")
+	fontPickerClose                 = tree.ID(workbench, "font-picker-close")
+	fontPickerSearch                = tree.ID(workbench, "font-picker-search")
+	fontPickerList                  = tree.ID(workbench, "font-picker-list")
+	settingsRestore                 = tree.ID(workbench, "settings-restore")
+	settingsDismiss                 = tree.ID(workbench, "settings-dismiss")
+	settingsClose                   = tree.ID(workbench, "settings-close")
+	settingsCancel                  = tree.ID(workbench, "settings-cancel")
+	settingsConfirm                 = tree.ID(workbench, "settings-confirm")
 )
 
 func NewConfig(m *Model) app.Config {
@@ -81,7 +120,7 @@ func NewConfig(m *Model) app.Config {
 	m.tooltip.ShowOnFocus()
 	invalidator := &app.Invalidator{}
 	m.invalidator = invalidator
-	textFields := flex.Fields(&m.filter, &m.findField, &m.goLineField)
+	textFields := flex.Fields(&m.filter, &m.findField, &m.goLineField, &m.settingsJava, &m.settingsFontSize, &m.settingsSearch, &m.fontPickerSearch)
 	config := app.Config{
 		Tree: &tree, Title: "JarLens", Width: 1200, Height: 760,
 		MinWidth: 900, MinHeight: 600,
@@ -97,13 +136,17 @@ func NewConfig(m *Model) app.Config {
 			}
 		},
 		TextInput: func(context app.TextInputContext) *app.TextInput {
-			if context.ID == sourceEditor && m.editor != nil {
-				return &app.TextInput{Editor: m.editor}
+			if pane := m.paneForSource(context.ID); pane != nil {
+				m.activatePane(pane)
+				if m.editor != nil {
+					return &app.TextInput{Editor: m.editor}
+				}
 			}
-			if context.ID == splitSourceEditor && m.secondary != nil {
-				return &app.TextInput{Editor: m.secondary.editor}
+			input := textFields(context)
+			if input != nil && (context.ID == settingsSearch || context.ID == settingsFontSizeInput) {
+				input.NavigationKeys = true
 			}
-			return textFields(context)
+			return input
 		},
 		OnFileDrop: func(event vivaui.FileDropEvent) vivaui.EventResult {
 			switch event.Phase {
@@ -137,8 +180,12 @@ func NewConfig(m *Model) app.Config {
 				m.chooseArchive()
 				return vivaui.EventResult{Handled: true}
 			case "s":
-				m.saveSource()
-				return vivaui.EventResult{Handled: true}
+				if event.Modifiers&vivaui.ModifierAlt != 0 {
+					m.openSettings()
+				} else {
+					m.saveSource()
+				}
+				return vivaui.EventResult{Handled: true, Repaint: true}
 			case "f":
 				if event.Modifiers&vivaui.ModifierShift != 0 {
 					m.filterOpen = true
@@ -162,6 +209,37 @@ func NewConfig(m *Model) app.Config {
 				return vivaui.EventResult{}
 			}
 			m.tooltip.Dismiss()
+			if m.settingsThemeSelect.Open {
+				return m.settingsThemeSelect.Key(event)
+			}
+			if m.settingsOpen && event.Target == settingsSearch {
+				if event.Key == vivaui.KeyEscape && m.settingsSearch.Text() != "" {
+					m.settingsSearch.SetText("")
+					m.settingsQuery = ""
+					m.filterSettingsPages("")
+					return vivaui.EventResult{Handled: true, Repaint: true}
+				}
+				if (event.Key == vivaui.KeyUp || event.Key == vivaui.KeyDown) && event.Modifiers&(vivaui.ModifierAlt|vivaui.ModifierControl|vivaui.ModifierMeta) == 0 {
+					delta := -1
+					if event.Key == vivaui.KeyDown {
+						delta = 1
+					}
+					m.moveSettingsSelection(delta)
+					return vivaui.EventResult{Handled: true, Repaint: true}
+				}
+			}
+			if m.settingsOpen && event.Target == settingsFontSizeInput && (event.Key == vivaui.KeyUp || event.Key == vivaui.KeyDown) {
+				delta := -1
+				if event.Key == vivaui.KeyUp {
+					delta = 1
+				}
+				m.stepSettingsFontSize(delta)
+				return vivaui.EventResult{Handled: true, Repaint: true}
+			}
+			if event.Key == vivaui.KeyEscape && m.mainMenuOpen {
+				m.mainMenuOpen = false
+				return vivaui.EventResult{Handled: true, Repaint: true}
+			}
 			if event.Key == vivaui.KeyEscape && m.findOpen {
 				m.findOpen = false
 				return vivaui.EventResult{Handled: true, Repaint: true}
@@ -173,17 +251,15 @@ func NewConfig(m *Model) app.Config {
 			if event.Target == projectSplitter {
 				return m.split.Key(event)
 			}
-			if !event.Release && event.Target == splitSourceEditor && m.secondary != nil {
-				movement, extend := components.TextareaMovementForKey(event.Key, event.Modifiers)
-				if movement == components.TextareaMoveNone {
-					return vivaui.EventResult{}
-				}
-				value := m.secondary.editor.String()
-				offset := m.secondary.code.Move(value, m.secondary.editor.ByteOffset(m.secondary.editor.Caret()), movement)
-				m.secondary.editor.MoveTo(utf8.RuneCountInString(value[:offset]), extend)
-				return vivaui.EventResult{Handled: true, Repaint: true}
+			if pane := m.paneForSplitter(event.Target); pane != nil {
+				return pane.splitter.Key(event)
 			}
-			if event.Release || event.Target != sourceEditor || m.editor == nil {
+			pane := m.paneForSource(event.Target)
+			if pane == nil {
+				return vivaui.EventResult{}
+			}
+			m.activatePane(pane)
+			if m.editor == nil {
 				return vivaui.EventResult{}
 			}
 			movement, extend := components.TextareaMovementForKey(event.Key, event.Modifiers)
@@ -196,36 +272,54 @@ func NewConfig(m *Model) app.Config {
 			return vivaui.EventResult{Handled: true, Repaint: true}
 		},
 		OnPointer: func(event vivaui.PointerEvent) vivaui.EventResult {
+			if event.Kind == vivaui.PointerDown && event.Y < 40 {
+				if rectContains(m.mainMenuTitleRect, event.X, event.Y) {
+					if m.mainMenuOpen && m.mainMenuFromTitle {
+						m.mainMenuOpen = false
+					} else {
+						m.mainMenuOpen = true
+						m.mainMenuFromTitle = true
+					}
+					return vivaui.EventResult{Handled: true, Repaint: true}
+				}
+			}
+			if m.mainMenuOpen && event.Kind == vivaui.PointerDown && event.Y >= 40 && event.Target == projectSwitcherDismiss {
+				m.mainMenuOpen = false
+				return vivaui.EventResult{Handled: true, Repaint: true}
+			}
 			if m.mainMenuOpen && m.projectMenuScroll.Drag(event) {
 				return vivaui.EventResult{Handled: true, Repaint: true}
 			}
 			m.sourcePointer = vivaui.Point{X: event.X, Y: event.Y}
-			m.sourcePointerInside = event.Target == sourceEditor && event.Kind != vivaui.PointerExit
+			pane := m.paneForSource(event.Target)
+			if event.Kind == vivaui.PointerDown && pane != nil {
+				m.activatePane(pane)
+			}
+			m.sourcePointerInside = pane != nil && pane == m.activePane && event.Kind != vivaui.PointerExit
 			if event.Target == projectHorizontalScrollbar {
 				return m.projectTreePointer(event)
 			}
-			if event.Target == sourceEditor {
+			if pane != nil && pane == m.activePane && event.Target == m.paneSourceID(pane) {
 				if result, handled := m.sourceLinkPointer(event); handled {
 					return result
 				}
-			}
-			if m.secondary != nil && (event.Target == splitSourceEditor || event.Target == splitSourceScrollbar || event.Target == splitSourceHorizontalScrollbar) {
-				return m.secondary.code.Pointer(event)
-			}
-			if event.Target == sourceEditor || event.Target == sourceScrollbar || event.Target == sourceHorizontalScrollbar {
 				return m.code.Pointer(event)
+			}
+			if pane != nil {
+				return pane.code.Pointer(event)
 			}
 			return vivaui.EventResult{}
 		},
 		OnScroll: func(event vivaui.ScrollEvent) vivaui.EventResult {
 			m.tooltip.Dismiss()
+			if m.settingsThemeSelect.Open {
+				return m.settingsThemeSelect.Wheel(event)
+			}
 			if m.mainMenuOpen && m.projectMenuScroll.Wheel(event) {
 				return vivaui.EventResult{Handled: true, Repaint: true}
 			}
-			if m.secondary != nil && (event.Target == splitSourceEditor || event.Target == splitSourceScrollbar || event.Target == splitSourceHorizontalScrollbar) {
-				return m.secondary.code.Scroll(event)
-			}
-			if event.Target == sourceEditor || event.Target == sourceScrollbar || event.Target == sourceHorizontalScrollbar {
+			if pane := m.paneForSource(event.Target); pane != nil {
+				m.activatePane(pane)
 				return m.code.Scroll(event)
 			}
 			if projectTreeEventTarget(event.Target) {
@@ -250,12 +344,16 @@ func NewConfig(m *Model) app.Config {
 			canvas.RequestFocus(projectFilter)
 		}
 		if m.focusSource {
-			canvas.RequestFocus(sourceEditor)
+			target := sourceEditor
+			if m.activePane != nil {
+				target = m.paneSourceID(m.activePane)
+			}
+			canvas.RequestFocus(target)
 			m.focusSource = false
 		}
-		if m.focusSplit {
-			canvas.RequestFocus(splitSourceEditor)
-			m.focusSplit = false
+		if m.focusPane != nil {
+			canvas.RequestFocus(m.paneSourceID(m.focusPane))
+			m.focusPane = nil
 		}
 		m.paint(canvas, size)
 	}
@@ -279,21 +377,15 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 	}
 	leading, trailing := app.TitlebarInsets()
 	m.updateFind()
-	var sourceSlot flex.Box
-	var secondarySourceSlot flex.Box
+	var sourcePanes map[*editorPane]flex.Box
+	var editorMenuPanes map[*editorPane]flex.Box
 	var splitterSlot flex.Box
-	var editorMenuButton flex.Box
 	var projectTreeBox flex.Box
-	var mainMenuTrigger flex.Box
 	var mainMenuTitleBox flex.Box
 	var projectTitleBox flex.Box
 	treeContentWidth := m.projectTreeContentWidth(canvas)
 	maxTreeScroll := max(float32(0), treeContentWidth-m.split.Pos)
 	treeScrollX := min(max(m.treeScrollX, 0), maxTreeScroll)
-	loading := m.busy && m.workspace == nil
-	if doc := m.currentDocument(); doc != nil && doc.loading {
-		loading = true
-	}
 	title := "JarLens"
 	if m.workspace != nil && !m.homeVisible {
 		title = filepathBase(m.workspace.Archive.Path)
@@ -311,22 +403,6 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 							f.Text("J").FontSize(11).Bold().Color(theme.PrimaryForeground)
 						})
 					}
-					mainMenuTrigger = f.Row().Size(30, 30).Center().Radius(8).HoverBackground(theme.Hover).
-						HitWith(mainMenuButton, "主菜单", vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "主菜单", Expanded: m.mainMenuOpen && !m.mainMenuFromTitle, Cursor: vivaui.PointerCursorHand})
-					if m.mainMenuOpen && !m.mainMenuFromTitle {
-						mainMenuTrigger = mainMenuTrigger.Background(theme.Hover)
-					}
-					mainMenuTrigger.Children(func() {
-						f.Icon(menuGlyph).Size(18, 18).Color(theme.SecondaryForeground)
-					})
-					if mainMenuTrigger.Clicked() {
-						if m.mainMenuOpen && !m.mainMenuFromTitle {
-							m.mainMenuOpen = false
-						} else {
-							m.mainMenuOpen = true
-							m.mainMenuFromTitle = false
-						}
-					}
 					if m.workspace == nil || m.homeVisible {
 						f.Row().Height(30).PadSides(0, 8, 0, 0).Gap(6).Items(flex.Center).Children(func() {
 							f.Icon(homeGlyph).Size(16, 16).Color(theme.SecondaryForeground)
@@ -334,7 +410,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 						})
 					} else {
 						mainMenuTitleBox = f.Row().Height(30).MaxWidth(340).PadSides(0, 8, 0, 0).Gap(6).Items(flex.Center).Radius(8).
-							HoverBackground(theme.Hover).
+							Hover(flex.Look{}.Background(theme.Hover)).
 							HitWith(mainMenuTitle, title, vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "归档菜单", Expanded: m.mainMenuOpen && m.mainMenuFromTitle, Cursor: vivaui.PointerCursorHand})
 						if m.mainMenuOpen && m.mainMenuFromTitle {
 							mainMenuTitleBox = mainMenuTitleBox.Background(theme.Hover)
@@ -350,8 +426,10 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 							if m.mainMenuOpen && m.mainMenuFromTitle {
 								m.mainMenuOpen = false
 							} else {
-								m.mainMenuOpen = true
-								m.mainMenuFromTitle = true
+								canvas.AfterPaint(func() {
+									m.mainMenuOpen = true
+									m.mainMenuFromTitle = true
+								})
 							}
 						}
 					}
@@ -365,6 +443,9 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 					}
 					if m.busy && iconButton(f, workCancel, "取消当前操作", cancelGlyph, theme, true) {
 						m.cancelWork()
+					}
+					if iconButton(f, settingsButton, "设置 (Ctrl+Alt+S)", settingsGlyphForAppearance(m.Theme), theme, true) {
+						m.openSettings()
 					}
 					if iconButton(f, githubOpen, "打开 GitHub 仓库", githubGlyph, theme, true) {
 						canvas.AfterPaint(m.openRepository)
@@ -385,7 +466,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 					f.Row().Width(6)
 					f.Column().Width(m.split.Pos).MarginSides(6, 0, 6, 0).Radius(10).Background(theme.Background).Children(func() {
 						f.Row().Height(40).PadX(8).Gap(8).Items(flex.Center).Justify(flex.Between).Children(func() {
-							projectTitleBox = f.Row().Height(24).PadX(4).Gap(4).Items(flex.Center).Radius(4).HoverBackground(theme.Hover).
+							projectTitleBox = f.Row().Height(24).PadX(4).Gap(4).Items(flex.Center).Radius(4).Hover(flex.Look{}.Background(theme.Hover)).
 								HitWith(projectTitle, "项目", vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "项目视图", Expanded: m.projectMenuOpen, Cursor: vivaui.PointerCursorHand})
 							if m.projectMenuOpen {
 								projectTitleBox = projectTitleBox.Background(theme.Hover)
@@ -411,51 +492,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 					})
 					splitterSlot = f.Splitter(projectSplitter, &m.split).Width(6).Mins(180, 320)
 					f.Column().Grow(1).MarginSides(6, 6, 6, 0).Radius(10).Background(theme.Background).Children(func() {
-						editorMenuButton = m.paintEditorHeader(f, theme)
-						if m.findOpen {
-							m.paintFindBar(f, theme)
-							f.Divider()
-						}
-						switch {
-						case loading:
-							f.Column().Grow(1).Center().Gap(12).Children(func() {
-								f.Spinner()
-								f.Text(status).FontSize(13).Muted()
-							})
-						case m.source != "":
-							f.Row().Height(36).PadX(12).Gap(8).Items(flex.Center).Background(editorBannerBackground(m.Theme)).Children(func() {
-								f.Icon(infoGlyph).Size(14, 14).Color(theme.MutedForeground)
-								f.Text(m.sourceInfo).FontSize(12).Color(theme.AccentForeground).Ellipsis()
-							})
-							f.Divider()
-							switch {
-							case m.secondary == nil:
-								sourceSlot = f.Slot().Grow(1)
-							case m.splitAxis == splitRight:
-								f.Row().Grow(1).Children(func() {
-									sourceSlot = f.Slot().Grow(1)
-									f.Divider()
-									secondarySourceSlot = f.Slot().Grow(1)
-								})
-							default:
-								f.Column().Grow(1).Children(func() {
-									sourceSlot = f.Slot().Grow(1)
-									f.Divider()
-									secondarySourceSlot = f.Slot().Grow(1)
-								})
-							}
-						case m.diagnostic != "":
-							f.Column().Grow(1).Justify(flex.Center).Pad(48).Gap(8).Children(func() {
-								f.Text("无法显示内容").FontSize(18).Bold()
-								f.Paragraph(m.diagnostic, 4).Muted()
-							})
-						case m.workspace == nil || m.selected < 0:
-							m.paintWelcome(f, theme)
-						default:
-							f.Column().Grow(1).Center().Children(func() {
-								f.Text("没有可显示的源代码").FontSize(16).Muted()
-							})
-						}
+						sourcePanes, editorMenuPanes = m.paintEditorPanes(f, theme)
 					})
 				})
 			}
@@ -466,6 +503,12 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 			if m.goLineOpen {
 				m.paintGoLineDialog(f, theme)
 			}
+			if m.settingsOpen {
+				m.paintSettingsDialog(f, theme)
+			}
+			if m.fontPickerOpen {
+				m.paintFontPicker(f, theme)
+			}
 		})
 	})
 	if m.workspace != nil && !m.homeVisible {
@@ -474,11 +517,8 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 			canvas.Fill(vivaui.Rect{X: rect.X + (rect.Width-1)/2, Y: rect.Y, Width: 1, Height: rect.Height}, theme.Border)
 		}
 	}
-	if m.source != "" && !m.busy && !m.homeVisible && sourceSlot.Rect().Width > 0 {
-		m.paintSource(canvas, theme, sourceSlot.Rect())
-	}
-	if m.secondary != nil && !m.homeVisible && secondarySourceSlot.Rect().Width > 0 {
-		m.paintSecondarySource(canvas, theme, secondarySourceSlot.Rect())
+	if !m.homeVisible {
+		m.paintPaneSources(canvas, theme, sourcePanes)
 	}
 	if treeScrollX != m.treeScrollX {
 		canvas.AfterPaint(func() { m.treeScrollX = treeScrollX })
@@ -489,8 +529,8 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 			Offset(treeScrollX, 0).HorizontalScrollbar(projectHorizontalScrollbar, "横向滚动项目树", "")
 		m.treeScrollGeometry = area.EndContent()
 	}
-	if m.tabsMenuOpen && len(m.documents) > 0 {
-		m.paintEditorTabMenu(canvas, theme, bounds, editorMenuButton.Rect())
+	if m.tabsMenuOpen && m.tabsMenuPane != nil && len(paneDocuments(m, m.tabsMenuPane)) > 0 {
+		m.paintEditorTabMenu(canvas, theme, bounds, editorMenuPanes[m.tabsMenuPane].Rect())
 	}
 	if m.tabsContextOpen {
 		m.paintTabContextMenu(canvas, theme, bounds)
@@ -499,11 +539,11 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 		m.paintProjectMenu(canvas, theme, bounds, projectTitleBox.Rect())
 	}
 	if m.mainMenuOpen {
-		anchor := mainMenuTrigger.Rect()
-		if m.mainMenuFromTitle {
-			anchor = mainMenuTitleBox.Rect()
-		}
-		m.paintMainMenu(canvas, theme, bounds, anchor)
+		m.paintProjectSwitcher(canvas, theme, bounds, mainMenuTitleBox.Rect())
+	}
+	m.mainMenuTitleRect = vivaui.Rect{}
+	if m.workspace != nil && !m.homeVisible {
+		m.mainMenuTitleRect = mainMenuTitleBox.Rect()
 	}
 	m.tooltip.Paint(canvas, m.Theme, bounds, workspaceTooltipDelay)
 }
@@ -591,7 +631,7 @@ func (m *Model) paintProjectNode(f *flex.Frame, theme vivaui.Theme, visible arch
 		hoverColor = selectedBackground
 	}
 	row := f.Row().Width(max(contentWidth-12, 0)).Height(24).Shrink(0).MarginSides(0, 6, 0, 6-scrollX).Radius(5).PadSides(0, 8, 0, 4+float32(visible.Depth)*20).Gap(4).Items(flex.Center).
-		HoverBackground(hoverColor).
+		Hover(flex.Look{}.Background(hoverColor)).
 		HitWith(id, label, vivaui.HitOptions{
 			Role: vivaui.RoleButton, Selected: selected,
 			Expanded: m.filter.Text() != "" || m.expanded[node.ID], Expandable: m.filter.Text() == "" && len(node.Children) > 0,
@@ -606,7 +646,7 @@ func (m *Model) paintProjectNode(f *flex.Frame, theme vivaui.Theme, visible arch
 		} else {
 			f.Row().Size(16, 24).Shrink(0)
 		}
-		paintFileIcon(f, node.Path, node.Kind, m.expanded[node.ID], 16).Shrink(0).MarginSides(0, 2, 0, 0)
+		paintFileIcon(f, node.Path, node.Kind, m.Theme == AppearanceDark, 16).Shrink(0).MarginSides(0, 2, 0, 0)
 		f.Text(label).FontSize(13).Shrink(0).Color(theme.AccentForeground)
 	})
 	if row.Clicked() {
@@ -679,103 +719,17 @@ func (m *Model) projectTreePointer(event vivaui.PointerEvent) vivaui.EventResult
 	return vivaui.EventResult{Handled: true, Repaint: true}
 }
 
-func (m *Model) paintEditorHeader(f *flex.Frame, theme vivaui.Theme) flex.Box {
-	if len(m.documents) == 0 {
-		return flex.Box{}
-	}
-	selectedBackground, selectedBorder, hoverBackground := editorTabColors(m.Theme)
-	var more flex.Box
-	f.Row().Height(40).PadX(4).Gap(2).Items(flex.Center).Children(func() {
-		for index, doc := range m.documents {
-			selected := index == m.active
-			hovered := f.Canvas().Hovered() == editorTabs.At(index) || f.Canvas().Hovered() == editorTabClose.At(index)
-			tab := f.Row().Height(28).MinWidth(40).MaxWidth(300).Radius(6).PadSides(0, 0, 0, 10).Gap(6).Items(flex.Center).
-				HoverBackground(hoverBackground).
-				HitWith(editorTabs.At(index), doc.name, vivaui.HitOptions{Role: vivaui.RoleTab, Selected: selected, Hint: doc.location, Cursor: vivaui.PointerCursorHand})
-			if selected {
-				tab = tab.Background(selectedBackground).Stroke(1, selectedBorder)
-			} else if hovered {
-				tab = tab.Background(hoverBackground)
-			}
-			tab.Children(func() {
-				kind := archive.NodeResource
-				if doc.language == "java" {
-					kind = archive.NodeClass
-				}
-				paintFileIcon(f, doc.path, kind, false, 14)
-				f.Text(doc.name).FontSize(13).MaxWidth(260).Ellipsis().Color(theme.AccentForeground)
-				closeID := editorTabClose.At(index)
-				closeHovered := f.Canvas().Hovered() == closeID
-				closePressed := f.Canvas().Pressed() == closeID
-				close := f.Row().Size(20, 20).MarginSides(0, 4, 0, 0).Center().Radius(4).
-					HitWith(closeID, "关闭 "+doc.name, vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "关闭 " + doc.name + " (Ctrl+W)", Cursor: vivaui.PointerCursorHand})
-				if f.Canvas().FocusVisible() == closeID {
-					close = close.Stroke(2, theme.Ring)
-				}
-				close.Children(func() {
-					if selected || hovered || f.Canvas().Focused() == closeID {
-						closeColor := theme.MutedForeground
-						if closeHovered || closePressed {
-							closeColor = theme.PrimaryForeground
-						}
-						button := f.Row().Size(16, 16).Radius(8).Center()
-						if closeHovered {
-							button = button.Background(theme.Primary)
-						}
-						if closePressed {
-							button = button.Background(theme.Primary.Mix(theme.Background, 0.16))
-						}
-						button.Children(func() {
-							f.Icon(cancelGlyph).Size(11, 11).Color(closeColor)
-						})
-					}
-				})
-				if close.Clicked() {
-					f.Canvas().AfterPaint(func() { m.closeDocument(index) })
-				}
-			})
-			if event, ok := f.Canvas().PointerOn(editorTabs.At(index)); ok && event.Kind == vivaui.PointerDown && event.Button == vivaui.PointerButtonSecondary {
-				m.activateDocument(index)
-				m.tabsContextTab = index
-				m.tabsContextPoint = vivaui.Point{X: event.X, Y: event.Y}
-				m.tabsContextOpen = true
-				m.tabsMenuOpen = false
-				f.Canvas().Consume()
-			}
-			if tab.Clicked() {
-				m.activateDocument(index)
-			}
-		}
-		f.Spacer()
-		moreHover := theme.Hover
-		moreColor := tabActionsColor(m.Theme)
-		if m.tabsMenuOpen {
-			moreHover = toolbarPressedColor(m.Theme)
-		}
-		more = f.Row().Size(28, 28).Center().Radius(6).HoverBackground(moreHover).
-			HitWith(editorTabsMenuOpen, "标签页操作", vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "标签页操作", Expanded: m.tabsMenuOpen, Cursor: vivaui.PointerCursorHand})
-		if m.tabsMenuOpen {
-			more = more.Background(moreHover)
-		}
-		more.Children(func() {
-			f.Icon(moreVerticalGlyph).Size(16, 16).Color(moreColor)
-		})
-		if more.Clicked() {
-			m.tabsMenuOpen = !m.tabsMenuOpen
-		}
-	})
-	f.Divider()
-	return more
-}
-
 func (m *Model) paintEditorTabMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewport, anchor vivaui.Rect) {
 	const rowHeight = float32(24)
 	menuTheme := contextMenuTheme(theme, m.Theme)
+	m.activatePane(m.tabsMenuPane)
+	documents := m.documents
+	active := m.active
 	items := []components.ContextMenuItem{
 		{ID: editorTabsCloseAll, Label: "关闭全部标签页"},
-		{ID: editorTabsCloseOthers, Label: "关闭其他标签页", Disabled: len(m.documents) < 2},
-		{ID: editorTabsCloseLeft, Label: "关闭左侧标签页", Disabled: m.active <= 0},
-		{ID: editorTabsCloseRight, Label: "关闭右侧标签页", Disabled: m.active < 0 || m.active >= len(m.documents)-1},
+		{ID: editorTabsCloseOthers, Label: "关闭其他标签页", Disabled: len(documents) < 2},
+		{ID: editorTabsCloseLeft, Label: "关闭左侧标签页", Disabled: active <= 0},
+		{ID: editorTabsCloseRight, Label: "关闭右侧标签页", Disabled: active < 0 || active >= len(documents)-1},
 	}
 	width := float32(180)
 	for _, item := range items {
@@ -819,7 +773,9 @@ func (m *Model) paintEditorTabMenu(canvas *vivaui.Canvas, theme vivaui.Theme, vi
 }
 
 func (m *Model) paintTabContextMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewport vivaui.Rect) {
-	if m.tabsContextTab < 0 || m.tabsContextTab >= len(m.documents) {
+	m.activatePane(m.tabsContextPane)
+	documents := m.documents
+	if m.tabsContextTab < 0 || m.tabsContextTab >= len(documents) {
 		m.tabsContextOpen = false
 		return
 	}
@@ -827,12 +783,12 @@ func (m *Model) paintTabContextMenu(canvas *vivaui.Canvas, theme vivaui.Theme, v
 	menuTheme := contextMenuTheme(theme, m.Theme)
 	items := []components.ContextMenuItem{
 		{ID: editorTabCloseCurrent, Label: "关闭", Shortcut: "Ctrl+W"},
-		{ID: editorTabsCloseOthers, Label: "关闭其他标签页", Disabled: len(m.documents) < 2},
+		{ID: editorTabsCloseOthers, Label: "关闭其他标签页", Disabled: len(documents) < 2},
 		{ID: editorTabsCloseAll, Label: "关闭全部标签页"},
 		{ID: editorTabsCloseLeft, Label: "关闭左侧标签页", Disabled: m.tabsContextTab <= 0},
-		{ID: editorTabsCloseRight, Label: "关闭右侧标签页", Disabled: m.tabsContextTab >= len(m.documents)-1},
-		{ID: editorTabSplitRight, Label: "向右拆分", Icon: splitRightGlyph, Disabled: m.documents[m.tabsContextTab].source == ""},
-		{ID: editorTabSplitDown, Label: "向下拆分", Icon: splitDownGlyph, Disabled: m.documents[m.tabsContextTab].source == ""},
+		{ID: editorTabsCloseRight, Label: "关闭右侧标签页", Disabled: m.tabsContextTab >= len(documents)-1},
+		{ID: editorTabSplitRight, Label: "向右拆分", Icon: splitRightGlyph, Disabled: documents[m.tabsContextTab].source == ""},
+		{ID: editorTabSplitDown, Label: "向下拆分", Icon: splitDownGlyph, Disabled: documents[m.tabsContextTab].source == ""},
 	}
 	width := float32(220)
 	for _, item := range items {
@@ -880,26 +836,6 @@ func (m *Model) paintTabContextMenu(canvas *vivaui.Canvas, theme vivaui.Theme, v
 	}
 }
 
-func (m *Model) splitDocument(index int, direction splitDirection) {
-	if index < 0 || index >= len(m.documents) || m.documents[index].source == "" {
-		return
-	}
-	doc := m.documents[index]
-	editor := text.NewEditor(doc.source)
-	if doc.editor != nil {
-		editor.SetSelection(doc.editor.Selection())
-	}
-	m.secondary = &editorSplit{doc: doc, editor: editor}
-	m.splitAxis = direction
-	m.focusSplit = true
-	m.tabsContextOpen = false
-	if direction == splitDown {
-		m.status = "已向下拆分 " + doc.name
-	} else {
-		m.status = "已向右拆分 " + doc.name
-	}
-}
-
 func (m *Model) paintProjectMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewport, anchor vivaui.Rect) {
 	menuTheme := contextMenuTheme(theme, m.Theme)
 	items := []components.ContextMenuItem{
@@ -938,7 +874,7 @@ func (m *Model) paintProjectMenu(canvas *vivaui.Canvas, theme vivaui.Theme, view
 	}
 }
 
-func (m *Model) paintMainMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewport, anchor vivaui.Rect) {
+func (m *Model) paintProjectSwitcher(canvas *vivaui.Canvas, theme vivaui.Theme, viewport, anchor vivaui.Rect) {
 	menuTheme := contextMenuTheme(theme, m.Theme)
 	currentPath := ""
 	if m.workspace != nil {
@@ -950,7 +886,7 @@ func (m *Model) paintMainMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewpor
 			recent = append(recent, path)
 		}
 	}
-	height := float32(24 + 9 + 24 + 9 + 12)
+	height := float32(2*24 + 2*9 + 12)
 	if currentPath != "" {
 		item := components.ContextMenuItem{Label: filepath.Base(currentPath), Description: currentPath}
 		height += 24 + components.ContextMenuItemHeight(menuTheme, item, 24)
@@ -962,18 +898,17 @@ func (m *Model) paintMainMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewpor
 			height += components.ContextMenuItemHeight(menuTheme, item, 24)
 		}
 	}
-	size := vivaui.Size{Width: 420, Height: height}
-	content, _ := components.PlaceOverlay(anchor, size, viewport, components.OverlayPlacement{
+	content, _ := components.PlaceOverlay(anchor, vivaui.Size{Width: 420, Height: height}, viewport, components.OverlayPlacement{
 		Side: components.OverlayBottom, Align: components.OverlayAlignStart, SideOffset: 4, Margin: 6,
 	})
 	m.projectMenuScroll.BarID = projectMenuScrollbar
 	menu := components.BeginContextMenu(canvas, menuTheme, content, components.ContextMenuOptions{
-		Layer: 4, Scope: mainMenu, DismissID: mainMenuDismiss, Viewport: viewport, RowHeight: 24, Scroll: &m.projectMenuScroll,
+		Layer: 4, Scope: projectSwitcher, DismissID: projectSwitcherDismiss, Viewport: viewport, RowHeight: 24, Scroll: &m.projectMenuScroll,
 	})
 	menu.BeginContent()
 	menu.AddItem(components.ContextMenuItem{ID: mainMenuOpenFile, Label: "打开...", Shortcut: "Ctrl+O", Icon: openGlyph})
 	menu.AddSeparator()
-	menu.AddItem(components.ContextMenuItem{ID: mainMenuHome, Label: "JarLens Home", Icon: homeGlyph})
+	menu.AddItem(components.ContextMenuItem{ID: projectSwitcherHome, Label: "JarLens Home", Icon: homeGlyph})
 	menu.AddSeparator()
 	if currentPath != "" {
 		menu.AddLabel("当前项目", false)
@@ -981,7 +916,7 @@ func (m *Model) paintMainMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewpor
 		paintProjectBadge(canvas, menu.AddItem(item), currentPath)
 	}
 	if len(recent) > 0 {
-		menu.AddLabel("最近项目", false)
+		menu.AddLabel("最近的项目", false)
 		for index, path := range recent {
 			item := components.ContextMenuItem{ID: recentProjects.At(index), Label: filepath.Base(path), Description: path, Inset: true}
 			paintProjectBadge(canvas, menu.AddItem(item), path)
@@ -990,21 +925,19 @@ func (m *Model) paintMainMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewpor
 	menu.EndContent()
 	menu.End()
 	switch {
-	case canvas.Clicked(mainMenuDismiss):
-		m.mainMenuOpen = false
 	case canvas.Clicked(mainMenuOpenFile):
 		m.mainMenuOpen = false
 		canvas.AfterPaint(m.chooseArchive)
-	case canvas.Clicked(mainMenuHome):
+	case canvas.Clicked(projectSwitcherHome):
 		m.mainMenuOpen = false
-		if m.RestoreWindow != nil {
-			m.RestoreWindow()
-		}
 		m.homeVisible = true
 		m.projectMenuOpen = false
 		m.tabsMenuOpen = false
 		m.tabsContextOpen = false
 		m.goLineOpen = false
+		if m.RestoreWindow != nil {
+			m.RestoreWindow()
+		}
 	case canvas.Clicked(mainMenuCurrentProject):
 		m.mainMenuOpen = false
 		if m.homeVisible && m.MaximizeWindow != nil {
@@ -1022,6 +955,10 @@ func (m *Model) paintMainMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewpor
 	}
 }
 
+func rectContains(rect vivaui.Rect, x, y float32) bool {
+	return rect.Width > 0 && rect.Height > 0 && x >= rect.X && x < rect.X+rect.Width && y >= rect.Y && y < rect.Y+rect.Height
+}
+
 func filepathBase(path string) string {
 	path = strings.ReplaceAll(path, "\\", "/")
 	if index := strings.LastIndex(path, "/"); index >= 0 {
@@ -1036,7 +973,7 @@ func iconButton(f *flex.Frame, id vivaui.ID, label string, glyph vivaui.Icon, th
 		color = theme.MutedForeground
 		color.Alpha *= 0.55
 	}
-	button := f.Row().Size(30, 30).Center().Radius(8).HoverBackground(theme.Hover).
+	button := f.Row().Size(30, 30).Center().Radius(8).Hover(flex.Look{}.Background(theme.Hover)).
 		HitWith(id, label, vivaui.HitOptions{Role: vivaui.RoleButton, Hint: label, Cursor: vivaui.PointerCursorHand, Disabled: !enabled})
 	button.Children(func() {
 		f.Icon(glyph).Size(18, 18).Color(color)
@@ -1050,7 +987,7 @@ func smallIconButton(f *flex.Frame, id vivaui.ID, label string, glyph vivaui.Ico
 		color = theme.MutedForeground
 		color.Alpha *= 0.55
 	}
-	button := f.Row().Size(24, 24).Center().Radius(4).HoverBackground(theme.Hover).
+	button := f.Row().Size(24, 24).Center().Radius(4).Hover(flex.Look{}.Background(theme.Hover)).
 		HitWith(id, label, vivaui.HitOptions{Role: vivaui.RoleButton, Hint: label, Cursor: vivaui.PointerCursorHand, Disabled: !enabled})
 	button.Children(func() {
 		f.Icon(glyph).Size(16, 16).Color(color)
@@ -1064,7 +1001,7 @@ func tinyIconButton(f *flex.Frame, id vivaui.ID, label string, glyph vivaui.Icon
 		color = theme.MutedForeground
 		color.Alpha *= 0.55
 	}
-	button := f.Row().Size(20, 20).Center().Radius(4).HoverBackground(theme.Hover).
+	button := f.Row().Size(20, 20).Center().Radius(4).Hover(flex.Look{}.Background(theme.Hover)).
 		HitWith(id, label, vivaui.HitOptions{Role: vivaui.RoleButton, Hint: label, Cursor: vivaui.PointerCursorHand, Disabled: !enabled})
 	button.Children(func() {
 		f.Icon(glyph).Size(16, 16).Color(color)

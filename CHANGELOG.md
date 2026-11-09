@@ -30,5 +30,6 @@ All notable changes to JarLens are documented here. The format follows
 
 ### Changed
 
+- Upgraded Viva to v0.5.1, migrated hover styling to `flex.Look`, and reworked settings into an OpenIDEA-style searchable page tree with staged edits, history, per-page reset, and stable select overlays.
 - Refined the workbench against OpenIDEA with compact editor tabs, rounded selected-tab fills and inset borders, hover-aware close actions, collapsible project filtering, and theme-correct source-provenance banners.
 - Tab activation now restores the selected node, editor state, and matching status-bar message.

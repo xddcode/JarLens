@@ -25,6 +25,7 @@ const (
 var assets embed.FS
 
 type Engine struct {
+	javaMu   sync.RWMutex
 	java     string
 	once     sync.Once
 	jarPath  string
@@ -34,6 +35,21 @@ type Engine struct {
 
 func New() *Engine {
 	return &Engine{java: findJava("")}
+}
+
+func (e *Engine) SetJava(path string) {
+	if path == "" {
+		path = findJava("")
+	}
+	e.javaMu.Lock()
+	e.java = path
+	e.javaMu.Unlock()
+}
+
+func (e *Engine) javaPath() string {
+	e.javaMu.RLock()
+	defer e.javaMu.RUnlock()
+	return e.java
 }
 
 func (e *Engine) Name() string {
@@ -86,7 +102,7 @@ func (e *Engine) Decompile(ctx context.Context, request decompile.Request) (deco
 		}
 	}
 	args = append(args, input, outputDir)
-	command := exec.CommandContext(ctx, e.java, args...)
+	command := exec.CommandContext(ctx, e.javaPath(), args...)
 	command.WaitDelay = 5 * time.Second
 	var logs limitedBuffer
 	command.Stdout = &logs
@@ -128,7 +144,7 @@ func (e *Engine) Decompile(ctx context.Context, request decompile.Request) (deco
 
 func (e *Engine) prepare() error {
 	e.once.Do(func() {
-		if e.java == "" {
+		if e.javaPath() == "" {
 			e.prepErr = decompile.ErrJavaNotFound
 			return
 		}

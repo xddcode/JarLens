@@ -8,17 +8,6 @@ import (
 	vivaui "github.com/vivaui/viva/ui"
 )
 
-func (m *Model) paintSource(canvas *vivaui.Canvas, theme vivaui.Theme, bounds vivaui.Rect) {
-	m.paintSourceView(canvas, theme, bounds, m.currentDocument(), m.editor, &m.code, sourceEditor, sourceScrollbar, sourceHorizontalScrollbar, m.findOpen, m.sourcePointer, m.sourcePointerInside)
-}
-
-func (m *Model) paintSecondarySource(canvas *vivaui.Canvas, theme vivaui.Theme, bounds vivaui.Rect) {
-	if m.secondary == nil {
-		return
-	}
-	m.paintSourceView(canvas, theme, bounds, m.secondary.doc, m.secondary.editor, &m.secondary.code, splitSourceEditor, splitSourceScrollbar, splitSourceHorizontalScrollbar, false, vivaui.Point{}, false)
-}
-
 func (m *Model) paintSourceView(canvas *vivaui.Canvas, theme vivaui.Theme, bounds vivaui.Rect, doc *document, editor *text.Editor, code *components.CodeEditor, id, scrollbarID, horizontalScrollbarID vivaui.ID, findOpen bool, pointer vivaui.Point, pointerInside bool) {
 	if doc == nil || editor == nil {
 		return
@@ -42,8 +31,8 @@ func (m *Model) paintSourceView(canvas *vivaui.Canvas, theme vivaui.Theme, bound
 		ReadOnly: true, Focused: focused, ShowCaret: showCaret,
 		Caret:          editor.ByteOffset(editor.Caret()),
 		SelectionStart: editor.ByteOffset(selection.Start), SelectionEnd: editor.ByteOffset(selection.End),
-		FontSize: 13, MonoFace: m.codeFace, TabWidth: 4,
-		LineNumbers: true, CurrentLine: true, MatchBrackets: true,
+		FontSize: float32(m.settings.FontSize), MonoFace: m.codeFace, TabWidth: 4,
+		LineNumbers: m.settings.ShowLineNumbers, CurrentLine: m.settings.HighlightCurrentLine, MatchBrackets: true,
 		Language: doc.language, ScrollbarID: scrollbarID, HorizontalScrollbarID: horizontalScrollbarID,
 	}
 	if findOpen && len(m.findMatches) > 0 {
@@ -65,6 +54,13 @@ func (m *Model) paintSourceView(canvas *vivaui.Canvas, theme vivaui.Theme, bound
 	sourceTheme.Primary = theme.Input
 	sourceTheme.Foreground, sourceTheme.MutedForeground, sourceTheme.Selection, sourceTheme.SelectionForeground = editorColors(m.Theme)
 	code.Paint(canvas, sourceTheme, bounds, snapshot)
+	if doc.pendingCenter {
+		if target, ok := code.YAtOffset(doc.pendingCenterOffset); ok {
+			code.SetScrollY(target - bounds.Height/2)
+			doc.pendingCenter = false
+			canvas.RequestFrame()
+		}
+	}
 	underlineClassLinks(canvas, doc.path, m.classLinks)
 	if pointerInside && canvas.Hovered() == id {
 		if offset, ok := code.OffsetAt(pointer); ok {

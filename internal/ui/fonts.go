@@ -10,9 +10,11 @@ import (
 )
 
 var (
-	fontOnce sync.Once
-	monoFace vivaui.MonoFace
-	fontErr  error
+	fontOnce        sync.Once
+	monoFace        vivaui.MonoFace
+	interfaceFamily string
+	jetBrainsFamily string
+	fontErr         error
 )
 
 func configureFonts() {
@@ -26,6 +28,8 @@ func configureFonts() {
 				fontErr = err
 			} else if !app.SetInterfaceFontFamily(family) {
 				fontErr = errors.New("the interface font is unavailable")
+			} else {
+				interfaceFamily = family
 			}
 		}
 
@@ -41,6 +45,7 @@ func configureFonts() {
 			monoFace = vivaui.MonoSystem
 			return
 		}
+		jetBrainsFamily = family
 		monoFace = vivaui.MonoFamily(family)
 	})
 }

@@ -12,8 +12,8 @@ target from verified product support.
 ## Runtime and file formats
 
 - Go 1.26.1 or newer is required to build from source.
-- Viva is pinned to commit `f7d46f622aacbe8d0dd7ad41c55f0e03a4cc762c` for the
-  character-grid editor and process-local font registration.
+- Viva is pinned to v0.5.1 for current native rendering, text measurement,
+  input handling, and component behavior.
 - JAR and standalone Class opening are implemented with bounded entry reads.
 - Text resources support UTF-8, UTF-8 BOM, UTF-16LE, and UTF-16BE. XML, JSON,
   YAML, Manifest, Properties, and arbitrary valid text open without an engine.

@@ -19,8 +19,10 @@ func main() {
 	}
 	recentStore := jarlensworkspace.NewRecentStore()
 	windowStore := jarlensworkspace.NewWindowStore()
+	settingsStore := jarlensworkspace.NewSettingsStore()
+	preferences := settingsStore.Load()
 	windowState := windowStore.Load()
-	model := &jarlensui.Model{RecentStore: recentStore}
+	model := &jarlensui.Model{RecentStore: recentStore, SettingsStore: settingsStore}
 	config := jarlensui.NewConfig(model)
 	config.Icon = icon
 	if windowState.Width > 0 {
@@ -60,7 +62,7 @@ func main() {
 		}
 		model.MaximizeWindow = func() { maximizeWindow(window) }
 		model.RestoreWindow = func() { restoreWindow(window) }
-		path, restore := startupProject(os.Args[1:], recentStore.Load())
+		path, restore := startupProject(os.Args[1:], recentStore.Load(), preferences.RestoreLastProject)
 		if restore {
 			model.RestorePath(path, windowState.Maximized)
 		} else if path != "" {
@@ -73,11 +75,11 @@ func main() {
 	}
 }
 
-func startupProject(args, recent []string) (path string, restore bool) {
+func startupProject(args, recent []string, allowRestore bool) (path string, restore bool) {
 	if len(args) > 0 {
 		return args[0], false
 	}
-	if len(recent) > 0 {
+	if allowRestore && len(recent) > 0 {
 		return recent[0], true
 	}
 	return "", false

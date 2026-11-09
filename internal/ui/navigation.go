@@ -19,7 +19,21 @@ func (m *Model) revealDocument(doc *document, name string) {
 	end := start + utf8.RuneCountInString(name)
 	doc.editor.SetSelection(text.Range{Start: end, End: start})
 	doc.code.Reveal(offset + len(name))
-	m.focusSource = true
+	doc.pendingCenter = true
+	doc.pendingCenterOffset = offset
+	if m.currentDocument() == doc {
+		m.code = doc.code
+		m.focusSource = true
+	}
+}
+
+func nestedDeclarationName(name string) string {
+	name = strings.TrimSuffix(name, ".class")
+	separator := strings.LastIndex(name, "$")
+	if separator < 0 {
+		return name
+	}
+	return strings.TrimLeft(name[separator+1:], "0123456789")
 }
 
 func declarationOffset(source, name string) int {

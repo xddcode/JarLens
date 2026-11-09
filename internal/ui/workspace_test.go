@@ -84,7 +84,7 @@ func TestHomeSecondProjectSwitchDoesNotPanic(t *testing.T) {
 	pumpUntil(t, driver, func() bool { return m.workspace != nil })
 
 	click(t, driver, mainMenuTitle)
-	click(t, driver, mainMenuHome)
+	click(t, driver, projectSwitcherHome)
 	if !m.homeVisible || !hasHit(driver, homeRecentProjects.At(1), "fixture.jar") {
 		t.Fatal("Home does not list the second project after returning")
 	}
@@ -94,41 +94,11 @@ func TestHomeSecondProjectSwitchDoesNotPanic(t *testing.T) {
 		t.Fatal("second project did not replace Home with its workbench")
 	}
 	click(t, driver, mainMenuTitle)
-	click(t, driver, mainMenuHome)
+	click(t, driver, projectSwitcherHome)
 	click(t, driver, homeRecentProjects.At(1))
 	pumpUntil(t, driver, func() bool { return m.workspace != nil && m.workspace.Archive.Path == first })
 	if m.homeVisible || !hasHit(driver, projectTitle, "项目") {
 		t.Fatal("switching back to the first project did not restore its workbench")
-	}
-}
-
-func TestMainMenuReturnsHomeAndRestoresWorkspace(t *testing.T) {
-	maximizes, restores := 0, 0
-	m := &Model{engine: &fakeEngine{}, MaximizeWindow: func() { maximizes++ }, RestoreWindow: func() { restores++ }}
-	driver := newDriver(t, m)
-	defer driver.Close()
-	m.OpenPath(writeWorkflowJAR(t))
-	pumpUntil(t, driver, func() bool { return m.workspace != nil })
-	opened := m.workspace
-
-	click(t, driver, mainMenuTitle)
-	if !hasHit(driver, mainMenuHome, "JarLens Home") {
-		t.Fatal("project menu does not expose the Home action")
-	}
-	click(t, driver, mainMenuHome)
-	if !m.homeVisible || m.workspace != opened || !hasHit(driver, homeOpen, "打开...") || hasHit(driver, projectTitle, "项目") {
-		t.Fatal("Home did not replace the workbench while retaining the current project")
-	}
-	if maximizes != 1 || restores != 1 {
-		t.Fatalf("Home window transitions = %d maximizes, %d restores; want 1 each", maximizes, restores)
-	}
-	click(t, driver, mainMenuButton)
-	click(t, driver, mainMenuCurrentProject)
-	if m.homeVisible || m.workspace != opened || !hasHit(driver, projectTitle, "项目") || hasHit(driver, homeOpen, "打开...") {
-		t.Fatal("current project did not restore the retained workbench")
-	}
-	if maximizes != 2 || restores != 1 {
-		t.Fatalf("returning to the current project did not maximize the Home window: %d maximizes, %d restores", maximizes, restores)
 	}
 }
 
@@ -168,12 +138,10 @@ func TestOpenIDEAWorkbenchGeometry(t *testing.T) {
 	snapshot := driver.Snapshot()
 	leading, _ := app.TitlebarInsets()
 	wantX := map[vivaui.ID]float32{
-		mainMenuButton: leading + 40,
-		mainMenuTitle:  leading + 80,
-		projectTitle:   14,
+		mainMenuTitle: leading + 40,
+		projectTitle:  14,
 	}
 	wantSizes := map[vivaui.ID]vivaui.Size{
-		mainMenuButton:  {Width: 30, Height: 30},
 		projectSearch:   {Width: 20, Height: 20},
 		projectSplitter: {Width: 6},
 	}
@@ -204,11 +172,11 @@ func TestOpenIDEAWorkbenchGeometry(t *testing.T) {
 	centers := make(map[vivaui.ID]float32)
 	for _, hit := range snapshot.Hits {
 		switch hit.ID {
-		case mainMenuButton, mainMenuTitle, projectTitle, projectSearch:
+		case projectTitle, projectSearch:
 			centers[hit.ID] = hit.Bounds.Y + hit.Bounds.Height/2
 		}
 	}
-	for _, pair := range [][2]vivaui.ID{{mainMenuButton, mainMenuTitle}, {projectTitle, projectSearch}} {
+	for _, pair := range [][2]vivaui.ID{{projectTitle, projectSearch}} {
 		if centers[pair[0]] != centers[pair[1]] {
 			t.Errorf("controls %v and %v are not vertically centered", pair[0], pair[1])
 		}
@@ -256,59 +224,27 @@ func TestThemeSwitch(t *testing.T) {
 	}
 }
 
-func TestMainMenuActions(t *testing.T) {
+func TestProjectSwitcherActions(t *testing.T) {
 	m := &Model{}
 	driver := newDriver(t, m)
 	defer driver.Close()
-
 	if m.appIcon.Width != 512 || m.appIcon.Height != 512 || len(m.appIcon.Pix) == 0 {
-		t.Fatal("embedded application icon was not loaded into the workspace")
-	}
-	if !hasHit(driver, mainMenuButton, "主菜单") || hasHit(driver, mainMenuTitle, "JarLens") {
-		t.Fatal("Home titlebar must expose only the main menu, not the archive dropdown")
+		t.Fatal("embedded application icon was not loaded")
 	}
 	if err := driver.QueueOpenFiles([]string{writeWorkflowJAR(t)}, nil); err != nil {
 		t.Fatal(err)
 	}
-	click(t, driver, mainMenuButton)
-	if !shows(driver, "打开...") {
-		t.Fatal("project menu does not show the existing open action")
-	}
-	for _, hit := range driver.Snapshot().Hits {
-		if hit.ID != mainMenuOpenFile {
-			continue
-		}
-		for _, primitive := range driver.Snapshot().Primitives {
-			if primitive.Bounds == hit.Bounds && primitive.Color == WorkspaceTheme(m.Theme).Accent {
-				t.Fatal("open action has a selected background before interaction")
-			}
-		}
-	}
-	click(t, driver, mainMenuOpenFile)
+	click(t, driver, homeOpen)
 	pumpUntil(t, driver, func() bool { return m.workspace != nil })
-	if !shows(driver, "fixture.jar") {
-		t.Fatal("main-menu Open did not open the archive")
-	}
 	click(t, driver, mainMenuTitle)
-	if !shows(driver, "当前项目") || !hasHit(driver, mainMenuCurrentProject, "fixture.jar") || !shows(driver, "F") {
-		t.Fatal("project menu does not show the current archive and its badge")
-	}
-	var currentBounds vivaui.Rect
-	for _, hit := range driver.Snapshot().Hits {
-		if hit.ID == mainMenuCurrentProject {
-			currentBounds = hit.Bounds
-		}
-	}
-	for _, primitive := range driver.Snapshot().Primitives {
-		if primitive.Bounds == currentBounds && primitive.Color == WorkspaceTheme(m.Theme).Accent && primitive.Radius == 5 {
-			t.Fatal("current project has a selected background before interaction")
-		}
+	if !shows(driver, "当前项目") || !hasHit(driver, mainMenuCurrentProject, "fixture.jar") || !hasHit(driver, projectSwitcherHome, "JarLens Home") {
+		t.Fatal("project switcher does not show the current project and Home")
 	}
 	if err := driver.Key(vivaui.KeyEscape, 0); err != nil {
 		t.Fatal(err)
 	}
 	if m.mainMenuOpen {
-		t.Fatal("Escape did not close the archive menu")
+		t.Fatal("Escape did not close the project switcher")
 	}
 }
 
@@ -325,10 +261,9 @@ func TestRecentProjectSwitchesArchive(t *testing.T) {
 	if len(m.recentProjects) != 2 || m.recentProjects[0] != second || m.recentProjects[1] != first {
 		t.Fatalf("recent project order is wrong: %q", m.recentProjects)
 	}
-
 	click(t, driver, mainMenuTitle)
-	if !shows(driver, "最近项目") || !hasHit(driver, recentProjects.At(0), "fixture.jar") {
-		t.Fatal("project menu does not list the previous archive")
+	if !shows(driver, "最近的项目") || !hasHit(driver, recentProjects.At(0), "fixture.jar") {
+		t.Fatal("project switcher does not list the previous archive")
 	}
 	click(t, driver, recentProjects.At(0))
 	pumpUntil(t, driver, func() bool { return m.workspace != nil && m.workspace.Archive.Path == first })
@@ -374,6 +309,7 @@ func TestIconButtonsHaveAccessibleNamesAndHints(t *testing.T) {
 		id    vivaui.ID
 		label string
 	}{
+		{id: settingsButton, label: "设置 (Ctrl+Alt+S)"},
 		{id: githubOpen, label: "打开 GitHub 仓库"},
 		{id: themeToggle, label: "使用浅色主题"},
 	} {

@@ -20,7 +20,7 @@ func (m *Model) paintHome(f *flex.Frame, theme vivaui.Theme) {
 				})
 			})
 			open := f.Row().FillWidth().Height(44).PadX(14).Gap(10).Items(flex.Center).Radius(6).
-				Background(theme.Secondary).HoverBackground(theme.Hover).
+				Background(theme.Secondary).Hover(flex.Look{}.Background(theme.Hover)).
 				HitWith(homeOpen, "打开...", vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "打开 JAR 或 Class 文件 (Ctrl+O)", Cursor: vivaui.PointerCursorHand})
 			open.Children(func() {
 				f.Icon(openGlyph).Size(18, 18).Color(theme.SecondaryForeground)
@@ -38,7 +38,7 @@ func (m *Model) paintHome(f *flex.Frame, theme vivaui.Theme) {
 					for index, path := range m.recentProjects {
 						name := filepath.Base(path)
 						row := f.Row().FillWidth().Height(56).PadX(10).Gap(12).Items(flex.Center).Radius(6).
-							HoverBackground(theme.Hover).
+							Hover(flex.Look{}.Background(theme.Hover)).
 							HitWith(homeRecentProjects.At(index), name, vivaui.HitOptions{Role: vivaui.RoleButton, Hint: path, Cursor: vivaui.PointerCursorHand})
 						row.Children(func() {
 							f.Row().Size(28, 28).Shrink(0).Radius(6).Background(projectBadgeColor(path)).Center().Children(func() {

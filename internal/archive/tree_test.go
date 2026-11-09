@@ -40,6 +40,8 @@ func TestTreeGroupsNestedClasses(t *testing.T) {
 		{ID: 1, Path: "example/Outer$Inner.class", Name: "Outer$Inner.class", Kind: EntryClass},
 		{ID: 2, Path: "example/Outer$Inner$Deep.class", Name: "Outer$Inner$Deep.class", Kind: EntryClass},
 		{ID: 3, Path: "example/Orphan$Inner.class", Name: "Orphan$Inner.class", Kind: EntryClass},
+		{ID: 4, Path: "example/Outer$1.class", Name: "Outer$1.class", Kind: EntryClass},
+		{ID: 5, Path: "example/Outer$1Local.class", Name: "Outer$1Local.class", Kind: EntryClass},
 	})
 	byPath := make(map[string]Node)
 	for _, node := range tree.Nodes {
@@ -57,6 +59,14 @@ func TestTreeGroupsNestedClasses(t *testing.T) {
 	}
 	if orphan.Parent == orphan.ID || orphan.Name != "Orphan$Inner.class" || orphan.Entry != 3 {
 		t.Fatalf("orphan class was given a synthetic parent: %+v", orphan)
+	}
+	anonymous := byPath["example/Outer$1.class"]
+	if anonymous.Parent != outer.ID || anonymous.Name != "Outer$1.class" {
+		t.Fatalf("anonymous class lost its binary name: %+v", anonymous)
+	}
+	local := byPath["example/Outer$1Local.class"]
+	if local.Parent != outer.ID || local.Name != "Outer$1Local.class" {
+		t.Fatalf("local class lost its binary name: %+v", local)
 	}
 	visible := tree.Visible(map[int]bool{outer.ID: true, outer.Parent: true})
 	foundInner := false
