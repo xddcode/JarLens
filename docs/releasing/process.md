@@ -40,6 +40,12 @@ Windows, macOS, and Linux artifacts, collects an SBOM and notices, creates a dra
 GitHub Release, generates SHA-256 checksums, and verifies the artifact set before
 publication.
 
+For a prerelease, keep `[app] version` numeric because Viva's package manifest does
+not accept a suffix. Tag `v<version>-beta.<n>` (or another prerelease suffix) and
+commit notes under that full tag version. The workflow validates the numeric base,
+uses the full tag version for notes and artifact names, and marks the GitHub
+Release as a prerelease instead of latest stable.
+
 ## Signing and provenance
 
 Unsigned builds must be labelled honestly. macOS signing/notarization and Windows

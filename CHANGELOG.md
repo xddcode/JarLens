@@ -6,6 +6,8 @@ All notable changes to JarLens are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-beta.1] - 2026-11-09
+
 ### Added
 
 - Initial Go and Viva project structure.

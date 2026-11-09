@@ -7,6 +7,7 @@ func TestProjectInitials(t *testing.T) {
 		"eco-aiot-platform-at": "EA",
 		"jd-gui-1.6.6.jar":     "JG",
 		"fixture.jar":          "F",
+		`C:\work\fixture.jar`:  "F",
 		"JarLens":              "J",
 	} {
 		if got := projectInitials(path); got != want {
