@@ -1,7 +1,7 @@
 [app]
 name = "JarLens"
 id = "io.github.xddcode.jarlens"
-version = "0.1.0"
+version = "0.1.0-beta.1"
 executable = "jarlens"
 package = "./cmd/jarlens"
 icon = "assets/app-icon.png"

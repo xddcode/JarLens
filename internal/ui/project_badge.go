@@ -9,7 +9,7 @@ import (
 )
 
 func projectInitials(path string) string {
-	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	name := strings.TrimSuffix(filepathBase(path), filepath.Ext(path))
 	words := strings.FieldsFunc(name, func(r rune) bool {
 		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 	})
@@ -30,7 +30,7 @@ func projectInitials(path string) string {
 }
 
 func projectBadgeColor(path string) vivaui.Color {
-	path = filepath.Base(path)
+	path = filepathBase(path)
 	palette := [...]vivaui.Color{
 		vivaui.RGB24(0xe08855), vivaui.RGB24(0xb08b14), vivaui.RGB24(0xa1a359),
 		vivaui.RGB24(0x3b92b8), vivaui.RGB24(0x3574f0), vivaui.RGB24(0xc84d8f),
