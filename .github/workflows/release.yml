@@ -102,7 +102,7 @@ jobs:
           printf '%s\n' "$src" | while read -r source; do
             case "$source" in
               *.deb)
-                destination="$RUNNER_TEMP/upload/jarlens$suffix}_${version}_${{ matrix.arch }}.deb"
+                destination="$RUNNER_TEMP/upload/jarlens${suffix}_${version}_${{ matrix.arch }}.deb"
                 ;;
               *-setup.exe)
                 destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}$suffix-setup.exe"
