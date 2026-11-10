@@ -10,6 +10,7 @@ import (
 type Settings struct {
 	Theme                string `json:"theme"`
 	JavaPath             string `json:"javaPath"`
+	Engine               string `json:"engine"`
 	FontSize             int    `json:"fontSize"`
 	UIFont               string `json:"uiFont"`
 	CodeFont             string `json:"codeFont"`
@@ -19,7 +20,7 @@ type Settings struct {
 }
 
 func DefaultSettings() Settings {
-	return Settings{Theme: "dark", FontSize: 13, UIFont: "inter", CodeFont: "jetbrains", ShowLineNumbers: true, HighlightCurrentLine: true, RestoreLastProject: true}
+	return Settings{Theme: "dark", Engine: "vineflower", FontSize: 13, UIFont: "inter", CodeFont: "jetbrains", ShowLineNumbers: true, HighlightCurrentLine: true, RestoreLastProject: true}
 }
 
 type SettingsStore struct {
@@ -67,6 +68,9 @@ func (store *SettingsStore) Load() Settings {
 	settings.ShowLineNumbers = saved.ShowLineNumbers
 	settings.HighlightCurrentLine = saved.HighlightCurrentLine
 	settings.RestoreLastProject = saved.RestoreLastProject
+	if saved.Engine == "vineflower" || saved.Engine == "cfr" || saved.Engine == "procyon" {
+		settings.Engine = saved.Engine
+	}
 	return settings
 }
 

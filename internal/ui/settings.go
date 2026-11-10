@@ -27,7 +27,7 @@ var (
 		{title: "编辑器", parent: -1, group: true, description: "调整代码字体、字号和编辑器显示。"},
 		{title: "字体", parent: 2, labels: []string{"代码字体", "字号", "字体大小"}},
 		{title: "常规", parent: 2, labels: []string{"显示行号", "高亮当前行"}},
-		{title: "系统设置", parent: 0, labels: []string{"Java 可执行文件", "可执行文件", "启动时恢复最近项目"}},
+		{title: "系统设置", parent: 0, labels: []string{"Java 可执行文件", "可执行文件", "反编译引擎", "Vineflower", "CFR", "Procyon", "启动时恢复最近项目"}},
 	}
 	settingsPageChildren = [][]int{{1, 5}, nil, {3, 4}, nil, nil, nil}
 	settingsPageRoots    = []int{0, 2}
@@ -50,6 +50,7 @@ func (m *Model) openSettings() {
 	m.settingsAppearanceExpanded = true
 	m.settingsEditorExpanded = true
 	m.settingsThemeSelect.Open = false
+	m.settingsEngineSelect.Open = false
 	m.settingsError = ""
 	m.settingsQuery = ""
 	m.settingsSearch.SetText("")
@@ -59,6 +60,7 @@ func (m *Model) openSettings() {
 func (m *Model) closeSettings() {
 	m.settingsOpen = false
 	m.settingsThemeSelect.Open = false
+	m.settingsEngineSelect.Open = false
 	m.settingsError = ""
 }
 
@@ -110,6 +112,7 @@ func (m *Model) applySettings(resetEditors bool) {
 	} else {
 		m.codeFace = vivaui.MonoFamily(jetBrainsFamily)
 	}
+	m.selectEngine(m.settings.Engine)
 	if engine, ok := m.engine.(interface{ SetJava(string) }); ok {
 		engine.SetJava(m.settings.JavaPath)
 	}
@@ -148,6 +151,9 @@ func (m *Model) saveSettings(closeDialog bool) {
 	if m.settingsDraft.Theme != "light" {
 		m.settingsDraft.Theme = "dark"
 	}
+	if decompilerEngineIndex(m.settingsDraft.Engine) < 0 {
+		m.settingsDraft.Engine = "vineflower"
+	}
 	resetEditors := m.settingsDraft.FontSize != m.settings.FontSize || m.settingsDraft.CodeFont != m.settings.CodeFont
 	m.settings = m.settingsDraft
 	if m.SettingsStore != nil {
@@ -185,7 +191,7 @@ func (m *Model) settingsPageDirty(page int) bool {
 	case 4:
 		return m.settingsDraft.ShowLineNumbers != m.settings.ShowLineNumbers || m.settingsDraft.HighlightCurrentLine != m.settings.HighlightCurrentLine
 	case 5:
-		return strings.TrimSpace(m.settingsJava.Text()) != m.settings.JavaPath || m.settingsDraft.RestoreLastProject != m.settings.RestoreLastProject
+		return strings.TrimSpace(m.settingsJava.Text()) != m.settings.JavaPath || m.settingsDraft.RestoreLastProject != m.settings.RestoreLastProject || m.settingsDraft.Engine != m.settings.Engine
 	default:
 		return false
 	}
@@ -226,6 +232,7 @@ func (m *Model) resetSettingsPage(page int) {
 		m.settingsDraft.HighlightCurrentLine = m.settings.HighlightCurrentLine
 	case 5:
 		m.settingsDraft.RestoreLastProject = m.settings.RestoreLastProject
+		m.settingsDraft.Engine = m.settings.Engine
 		m.settingsJavaText = m.settings.JavaPath
 		m.settingsJava.SetText(m.settingsJavaText)
 	}
@@ -594,6 +601,18 @@ func (m *Model) paintEditorGeneralSettings(f *flex.Frame, theme vivaui.Theme) {
 }
 
 func (m *Model) paintSystemSettings(f *flex.Frame, theme vivaui.Theme) {
+	settingsGroup(f, theme, "反编译", func() {
+		m.settingsRow(f, theme, "引擎", func() {
+			selected := decompilerEngineIndex(m.settingsDraft.Engine)
+			selector := f.Select(settingsEngine, &m.settingsEngineSelect, decompilerEngineLabels, selected).Width(240).Label("反编译引擎")
+			if m.settingsEngineSelect.Open {
+				selector = selector.DrawOver(func(d *flex.DrawContext) { d.Canvas.EndPresence() })
+			}
+			if index, ok := selector.Picked(); ok {
+				m.settingsDraft.Engine = decompilerEngineIDs[index]
+			}
+		})
+	})
 	settingsGroup(f, theme, "Java 运行环境", func() {
 		m.settingsRow(f, theme, "可执行文件", func() {
 			f.Field(&m.settingsJava, settingsJavaPath, "Java 可执行文件", "自动检测 PATH 或内置 JRE").Width(360)
@@ -717,6 +736,8 @@ func (m *Model) settingsDescription(label string) string {
 		return "在编辑器左侧显示行号。"
 	case "高亮当前行":
 		return "高亮显示光标所在的代码行。"
+	case "引擎":
+		return "选择用于后续反编译的引擎；已有文档保留其实际来源。"
 	case "可执行文件":
 		return "留空时自动检测内置 JRE、JARLENS_JAVA 或 PATH。"
 	case "启动时恢复最近项目":

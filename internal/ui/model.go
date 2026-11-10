@@ -17,7 +17,6 @@ import (
 	vivaui "github.com/vivaui/viva/ui"
 	"github.com/xddcode/jarlens/internal/archive"
 	"github.com/xddcode/jarlens/internal/decompile"
-	"github.com/xddcode/jarlens/internal/engine/vineflower"
 	jarlensworkspace "github.com/xddcode/jarlens/internal/workspace"
 )
 
@@ -111,6 +110,7 @@ type Model struct {
 	settingsFontSize           flex.Field
 	settingsSearch             flex.Field
 	settingsThemeSelect        flex.SelectState
+	settingsEngineSelect       flex.SelectState
 	settingsOpen               bool
 	settingsCategory           int
 	settingsQuery              string
@@ -137,6 +137,7 @@ type Model struct {
 	split           flex.SplitterState
 	editor          *text.Editor
 	engine          decompile.Engine
+	engines         []decompile.Engine
 	workspace       *jarlensworkspace.Workspace
 	expanded        map[int]bool
 	documents       []*document
@@ -212,9 +213,7 @@ func (m *Model) initialize() {
 	if m.editor == nil {
 		m.editor = text.NewEditor("")
 	}
-	if m.engine == nil {
-		m.engine = vineflower.New()
-	}
+	m.initializeEngines()
 	m.applySettings(false)
 	if m.expanded == nil {
 		m.expanded = make(map[int]bool)
@@ -678,9 +677,7 @@ func (m *Model) openRepository() {
 
 func (m *Model) close() {
 	m.stopCurrent()
-	if closer, ok := m.engine.(interface{ Close() error }); ok {
-		_ = closer.Close()
-	}
+	m.closeEngines()
 }
 
 func (m *Model) fail(message string, err error) {

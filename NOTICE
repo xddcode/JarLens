@@ -9,6 +9,10 @@ part of the IntelliJ Platform (https://github.com/JetBrains/intellij-community),
 licensed under the Apache License, Version 2.0.
 Copyright 2000-2026 JetBrains s.r.o. and contributors.
 
+This product includes CFR 0.152, copyright 2011-2019 Lee Benfield, licensed under
+the MIT License, and Procyon 0.6.0, licensed under the Apache License, Version 2.0.
+Their license texts are preserved beside the embedded engine artifacts.
+
 The JarLens name and logo are not licensed under Apache-2.0. Third-party
 software, decompiler engines, fonts, icons and other assets retain their own
 licenses. See THIRD_PARTY_NOTICES.md for distribution notices.

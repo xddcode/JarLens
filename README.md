@@ -61,7 +61,7 @@ go tool viva build
 | --- | --- |
 | Native OpenIDEA Islands workspace | Available |
 | JAR/Class opening and lazy class tree | Available |
-| Vineflower 1.12.0 decompilation | Available |
+| Selectable Vineflower 1.12.0, CFR 0.152, and Procyon 0.6.0 engines | Available |
 | Multiple document tabs and current source export | Available |
 | XML, JSON, YAML, Manifest, and other UTF-8/UTF-16 text resources | Available |
 | Project filter, source find, and go to line | Available |
