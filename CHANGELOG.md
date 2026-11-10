@@ -19,6 +19,7 @@ All notable changes to JarLens are documented here. The format follows
 
 ### Changed
 
+- Upgraded the build requirement to Go 1.26.10 for current standard-library security fixes.
 - Refreshed the application icon, OpenIDEA refresh glyph, and rounded inset decompiler banner.
 
 ### Fixed
