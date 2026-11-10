@@ -60,6 +60,7 @@ func main() {
 		if err != nil {
 			return err
 		}
+		model.SyncNativeAppearance()
 		model.MaximizeWindow = func() { maximizeWindow(window) }
 		model.RestoreWindow = func() { restoreWindow(window) }
 		path, restore := startupProject(os.Args[1:], recentStore.Load(), preferences.RestoreLastProject)

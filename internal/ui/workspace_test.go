@@ -195,6 +195,24 @@ func TestOpenIDEAWorkbenchGeometry(t *testing.T) {
 	}
 }
 
+func TestNativeAppearanceIsDeferredUntilWindowStartup(t *testing.T) {
+	m := &Model{}
+	config := NewConfig(m)
+	if !m.nativeAppearanceDirty || m.nativeAppearance != app.AppearanceDark {
+		t.Fatal("initial native appearance was not staged for the window thread")
+	}
+	var canvas vivaui.Canvas
+	driver, err := app.NewDriver(config, &canvas)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer driver.Close()
+	m.SyncNativeAppearance()
+	if m.nativeAppearanceDirty || driver.NativeAppearance() != app.AppearanceDark {
+		t.Fatal("window startup did not apply the staged native appearance")
+	}
+}
+
 func TestThemeSwitch(t *testing.T) {
 	m := &Model{}
 	driver := newDriver(t, m)
@@ -377,6 +395,7 @@ func newDriver(t *testing.T, m *Model) *app.Driver {
 	if err != nil {
 		t.Fatal(err)
 	}
+	m.SyncNativeAppearance()
 	return driver
 }
 

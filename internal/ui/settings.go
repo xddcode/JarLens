@@ -114,7 +114,16 @@ func (m *Model) applyThemePreference(preference string) {
 			m.Theme = AppearanceLight
 		}
 	}
-	app.SetNativeAppearance(nativeAppearance)
+	m.nativeAppearance = nativeAppearance
+	m.nativeAppearanceDirty = true
+}
+
+func (m *Model) SyncNativeAppearance() {
+	if !m.nativeAppearanceDirty {
+		return
+	}
+	app.SetNativeAppearance(m.nativeAppearance)
+	m.nativeAppearanceDirty = false
 }
 
 func (m *Model) applySettings(resetEditors bool) {
@@ -190,6 +199,7 @@ func (m *Model) saveSettings(closeDialog bool) {
 		m.SettingsStore.Save(m.settings)
 	}
 	m.applySettings(resetEditors)
+	m.SyncNativeAppearance()
 	m.reindentDocuments(previousTabWidth, m.settings.TabWidth)
 	m.settingsJavaText = m.settings.JavaPath
 	m.settingsJava.SetText(m.settingsJavaText)

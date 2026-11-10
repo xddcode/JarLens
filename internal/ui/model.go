@@ -213,14 +213,16 @@ type Model struct {
 	sourcePointerInside bool
 	selectingSource     bool
 
-	invalidator *app.Invalidator
-	mu          sync.Mutex
-	pending     *taskResult
-	generation  uint64
-	taskEntry   int
-	taskPane    *editorPane
-	cancel      context.CancelFunc
-	openURL     func(string) error
+	invalidator           *app.Invalidator
+	nativeAppearance      app.Appearance
+	nativeAppearanceDirty bool
+	mu                    sync.Mutex
+	pending               *taskResult
+	generation            uint64
+	taskEntry             int
+	taskPane              *editorPane
+	cancel                context.CancelFunc
+	openURL               func(string) error
 }
 
 func (m *Model) initialize() {

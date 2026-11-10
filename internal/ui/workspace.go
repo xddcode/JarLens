@@ -144,7 +144,11 @@ func NewConfig(m *Model) app.Config {
 		MinWidth: 900, MinHeight: 600,
 		WindowMode: app.WindowCustomTitlebar, TitlebarHeight: 40,
 		ClearColor:  app.Color{Red: 38.0 / 255, Green: 40.0 / 255, Blue: 44.0 / 255, Alpha: 1},
-		Invalidator: invalidator, OnWake: m.wake,
+		Invalidator: invalidator,
+		OnWake: func() {
+			m.SyncNativeAppearance()
+			m.wake()
+		},
 		OnClosed: func() {
 			stopSystemAppearance()
 			m.close()
@@ -504,14 +508,12 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 						canvas.AfterPaint(m.openRepository)
 					}
 					if iconButton(f, themeToggle, themeLabel, themeGlyph, theme, true) {
-						nativeAppearance := app.AppearanceDark
+						preference := "dark"
 						if m.Theme == AppearanceDark {
-							m.Theme = AppearanceLight
-							nativeAppearance = app.AppearanceLight
-						} else {
-							m.Theme = AppearanceDark
+							preference = "light"
 						}
-						app.SetNativeAppearance(nativeAppearance)
+						m.applyThemePreference(preference)
+						m.SyncNativeAppearance()
 					}
 				})
 			})
