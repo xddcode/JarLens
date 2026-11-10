@@ -80,8 +80,12 @@ jobs:
       - name: Package without claiming a signature
         shell: bash
         run: |
+          package_out="$RUNNER_TEMP/package"
+          if [ "${{ matrix.target }}" = "darwin" ]; then
+            package_out="$RUNNER_TEMP/package/JarLens.app"
+          fi
           go tool viva package --target "${{ matrix.target }}" --arch "${{ matrix.arch }}" \
-            --format "${{ matrix.format }}" --no-sign --out "$RUNNER_TEMP/package"
+            --format "${{ matrix.format }}" --no-sign --out "$package_out"
           version=${GITHUB_REF_NAME#v}
           src=$(find "$RUNNER_TEMP/package" -maxdepth 1 -type f)
           if [ -z "$src" ] || [ "$(printf '%s\n' "$src" | wc -l)" -ne 1 ]; then
@@ -97,6 +101,7 @@ jobs:
           if [ "${{ matrix.variant }}" = "portable" ]; then suffix="-portable"; fi
           destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}$suffix.$extension"
           mv "$src" "$destination"
+          echo "destination=$destination" >> "$GITHUB_ENV"
       - name: Bundle the managed JRE for the standard variant
         if: matrix.variant == 'standard'
         shell: bash

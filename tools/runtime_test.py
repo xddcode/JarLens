@@ -8,10 +8,16 @@ import zipfile
 import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
-from runtime import bundle, select_jre, sha256
+from runtime import adoptium_architecture, bundle, select_jre, sha256
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_adoptium_architecture(self):
+        self.assertEqual(adoptium_architecture("amd64"), "x64")
+        self.assertEqual(adoptium_architecture("arm64"), "aarch64")
+        with self.assertRaises(ValueError):
+            adoptium_architecture("x64")
+
     def test_select_jre(self):
         package = {"os": "windows", "architecture": "x64"}
         assets = [{"binary": {"image_type": "jre", "os": "windows", "architecture": "x64", "package": package}}]
