@@ -17,6 +17,12 @@ the application. Windows and Linux use `jre/bin` beside the executable; macOS us
 `JarLens.app/Contents/Resources/jre/bin`. Runtime downloads happen only in CI,
 never at application startup.
 
+Portable downloads additionally provide Windows `setup.exe`, macOS `dmg`, and
+Linux `deb` packages beside their zip or tar.gz archives. These installers use the
+same system-Java rules as the portable archives. Standard offline packages remain
+zip or tar.gz so the current bundler cannot accidentally omit the managed JRE from
+an installer-specific format.
+
 ## Prepare
 
 1. Complete the milestone and confirm all required checks on `main`.
