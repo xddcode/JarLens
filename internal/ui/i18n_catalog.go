@@ -2,6 +2,7 @@ package ui
 
 var interfaceTranslations = map[string]map[string]string{
 	languageEnglish: {
+		"浏览...": "Browse...", "选择 Java 可执行文件": "Choose Java Executable",
 		"：":     ": ",
 		"打开...": "Open...", "打开 Java 归档": "Open Java Archive", "Java 归档和类文件": "Java archives and class files", "无法打开文件选择对话框": "Unable to open the file chooser",
 		"正在打开 %s": "Opening %s", "正在读取 %s": "Reading %s", "正在反编译 %s": "Decompiling %s", "已打开 %s": "Opened %s", "已导出 %s": "Exported %s",
@@ -30,6 +31,7 @@ var interfaceTranslations = map[string]map[string]string{
 		"暂时无法获取更新日志，请检查网络后重试": "Unable to load release notes. Check your network and try again.", "无法打开版本发布页面": "Unable to open the releases page", "已打开版本发布页面": "Releases page opened", "查看所选来源发布的各版本更新内容": "View release notes published on the selected source", "在官网查看": "View on Website", "刷新更新日志": "Refresh Release Notes", "正在获取更新日志...": "Loading release notes...", "重试": "Retry", "该来源还没有发布正式版本": "No stable releases have been published on this source", "查看 %s 更新日志": "View %s release notes", "当前": "Current", "发布于 ": "Published ", "2006年1月2日": "Jan 2, 2006",
 	},
 	languageJapanese: {
+		"浏览...": "参照...", "选择 Java 可执行文件": "Java 実行ファイルを選択",
 		"：":     "：",
 		"打开...": "開く...", "打开 Java 归档": "Java アーカイブを開く", "Java 归档和类文件": "Java アーカイブとクラスファイル", "无法打开文件选择对话框": "ファイル選択ダイアログを開けません",
 		"正在打开 %s": "%s を開いています", "正在读取 %s": "%s を読み込んでいます", "正在反编译 %s": "%s をデコンパイルしています", "已打开 %s": "%s を開きました", "已导出 %s": "%s をエクスポートしました",
@@ -58,6 +60,7 @@ var interfaceTranslations = map[string]map[string]string{
 		"暂时无法获取更新日志，请检查网络后重试": "リリースノートを取得できません。ネットワークを確認して再試行してください。", "无法打开版本发布页面": "リリースページを開けません", "已打开版本发布页面": "リリースページを開きました", "查看所选来源发布的各版本更新内容": "選択したソースに公開された各バージョンのリリースノートを表示します", "在官网查看": "公式サイトで表示", "刷新更新日志": "リリースノートを更新", "正在获取更新日志...": "リリースノートを取得しています...", "重试": "再試行", "该来源还没有发布正式版本": "このソースにはまだ安定版が公開されていません", "查看 %s 更新日志": "%s のリリースノートを表示", "当前": "現在", "发布于 ": "公開日 ", "2006年1月2日": "2006年1月2日",
 	},
 	languageKorean: {
+		"浏览...": "찾아보기...", "选择 Java 可执行文件": "Java 실행 파일 선택",
 		"：":     "：",
 		"打开...": "열기...", "打开 Java 归档": "Java 아카이브 열기", "Java 归档和类文件": "Java 아카이브 및 클래스 파일", "无法打开文件选择对话框": "파일 선택 대화 상자를 열 수 없습니다",
 		"正在打开 %s": "%s 여는 중", "正在读取 %s": "%s 읽는 중", "正在反编译 %s": "%s 디컴파일하는 중", "已打开 %s": "%s 열었습니다", "已导出 %s": "%s 내보냈습니다",

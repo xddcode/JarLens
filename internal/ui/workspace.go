@@ -106,6 +106,7 @@ var (
 	settingsCurrentLine             = tree.ID(workbench, "settings-current-line")
 	settingsApply                   = tree.ID(workbench, "settings-apply")
 	settingsJavaPath                = tree.ID(workbench, "settings-java-path")
+	settingsJavaBrowse              = tree.ID(workbench, "settings-java-browse")
 	settingsFontSizeInput           = tree.ID(workbench, "settings-font-size-input")
 	settingsUIFontChoose            = tree.ID(workbench, "settings-ui-font-choose")
 	settingsCodeFontChoose          = tree.ID(workbench, "settings-code-font-choose")

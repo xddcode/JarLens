@@ -380,6 +380,30 @@ func TestSettingsRejectsInvalidJavaPath(t *testing.T) {
 	}
 }
 
+func TestSettingsJavaBrowse(t *testing.T) {
+	store := &memorySettingsStore{settings: jarlensworkspace.DefaultSettings()}
+	m := &Model{SettingsStore: store}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	openSettingsForTest(t, driver)
+	click(t, driver, settingsNav.At(5))
+	java, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := driver.QueueOpenFiles([]string{java}, nil); err != nil {
+		t.Fatal(err)
+	}
+	click(t, driver, settingsJavaBrowse)
+	if got := m.settingsJava.Text(); got != java {
+		t.Fatalf("selected Java path = %q, want %q", got, java)
+	}
+	click(t, driver, settingsApply)
+	if m.settings.JavaPath != java || store.saves != 1 {
+		t.Fatalf("selected Java path was not persisted: %+v", m.settings)
+	}
+}
+
 func TestSettingsGlyphUsesOpenIDEAIcon(t *testing.T) {
 	for _, appearance := range []Appearance{AppearanceDark, AppearanceLight} {
 		glyph := settingsGlyphForAppearance(appearance)

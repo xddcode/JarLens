@@ -711,7 +711,12 @@ func (m *Model) paintSystemSettings(f *flex.Frame, theme vivaui.Theme) {
 	})
 	settingsGroup(f, theme, m.t("Java 运行环境"), func() {
 		m.settingsRow(f, theme, "可执行文件", func() {
-			f.Field(&m.settingsJava, settingsJavaPath, m.t("Java 可执行文件"), m.t("自动检测 PATH 或内置 JRE")).Width(360)
+			f.Row().Gap(8).Items(flex.Center).Children(func() {
+				f.Field(&m.settingsJava, settingsJavaPath, m.t("Java 可执行文件"), m.t("自动检测 PATH 或内置 JRE")).Grow(1).MaxWidth(360)
+				if f.Button(settingsJavaBrowse, m.t("浏览...")).Outline().Small().Clicked() {
+					f.Canvas().AfterPaint(m.chooseSettingsJava)
+				}
+			})
 		})
 	})
 	settingsGroup(f, theme, m.t("启动"), func() {
@@ -719,6 +724,22 @@ func (m *Model) paintSystemSettings(f *flex.Frame, theme vivaui.Theme) {
 			m.settingsDraft.RestoreLastProject = !m.settingsDraft.RestoreLastProject
 		})
 	})
+}
+
+func (m *Model) chooseSettingsJava() {
+	paths, err := app.OpenFiles(app.OpenFileOptions{
+		Title:   m.t("选择 Java 可执行文件"),
+		Filters: []app.FileFilter{{Name: m.t("Java 可执行文件"), Pattern: "java;java.exe"}},
+	})
+	if err != nil {
+		m.settingsError = m.t("无法打开文件选择对话框")
+		return
+	}
+	if len(paths) > 0 {
+		m.settingsJavaText = paths[0]
+		m.settingsJava.SetText(paths[0])
+		m.settingsError = ""
+	}
 }
 
 func settingsGroup(f *flex.Frame, theme vivaui.Theme, title string, children func()) {
