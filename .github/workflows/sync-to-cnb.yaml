@@ -11,6 +11,12 @@ on:
   delete:           # 分支或标签删除时也同步
   release:
     types: [published, edited]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to synchronize, for example v0.1.0-beta.3'
+        required: true
+        type: string
 
 jobs:
   mirror:
@@ -41,7 +47,7 @@ jobs:
 
   sync-release:
     name: Synchronize Release to CNB.cool
-    if: github.actor == 'xddcode' && github.event_name == 'release'
+    if: github.actor == 'xddcode' && (github.event_name == 'release' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -49,7 +55,7 @@ jobs:
       - name: Synchronize release notes and assets
         shell: bash
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
           CNB_USERNAME: ${{ secrets.CNB_USERNAME }}
           CNB_TOKEN: ${{ secrets.CNB_TOKEN }}
           GITHUB_USERNAME: xddcode

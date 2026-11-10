@@ -65,7 +65,9 @@ workflow verifies the tool archive with SHA-256 before running it.
 Configure `CNB_USERNAME` and `CNB_TOKEN` in GitHub Actions secrets. The token needs
 repository write access and Release read/write access on CNB. Release
 synchronization runs on GitHub's Ubuntu runners; the Linux synchronization binary
-is not a local Windows development dependency.
+is not a local Windows development dependency. To synchronize or retry one release
+manually, run `gh workflow run sync-to-cnb.yaml -f tag=v<version>-beta.<n>`. The
+manual job accepts the same pinned tag and verifies the tool checksum before use.
 
 ## Signing and provenance
 
