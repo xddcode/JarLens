@@ -181,6 +181,7 @@ func (m *Model) sourceLinkPointer(event vivaui.PointerEvent) (vivaui.EventResult
 			return vivaui.EventResult{}, false
 		}
 		if entryID, linked := classLinkAt(doc.links, offset); linked {
+			m.selectingSource = false
 			m.startDecompile(entryID)
 			return vivaui.EventResult{Handled: true, Repaint: true}, true
 		}

@@ -780,6 +780,20 @@ func TestClassLinksNavigateToServiceAndJavaReferences(t *testing.T) {
 	if got := m.source[m.editor.ByteOffset(selection.Start):m.editor.ByteOffset(selection.End)]; got != "World" {
 		t.Fatalf("service link did not select the target declaration: %q", got)
 	}
+	if m.selectingSource {
+		t.Fatal("source drag selection remained active after link navigation")
+	}
+	for _, hit := range driver.Snapshot().Hits {
+		if hit.ID != sourceEditor {
+			continue
+		}
+		if err := driver.Move(hit.Bounds.X+hit.Bounds.Width-20, hit.Bounds.Y+12); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if after := m.editor.Selection(); after != selection {
+		t.Fatalf("pointer movement changed the target selection after navigation: %+v -> %+v", selection, after)
+	}
 	worldID := findNodeID(t, m, "World.class")
 	if parent := m.workspace.Tree.Nodes[worldID].Parent; !m.expanded[parent] {
 		t.Fatal("target class parent was not expanded after navigation")
