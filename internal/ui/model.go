@@ -3,7 +3,7 @@ package ui
 import (
 	"context"
 	"errors"
-	"fmt"
+
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,6 +17,7 @@ import (
 	vivaui "github.com/vivaui/viva/ui"
 	"github.com/xddcode/jarlens/internal/archive"
 	"github.com/xddcode/jarlens/internal/decompile"
+	jarlensupdate "github.com/xddcode/jarlens/internal/update"
 	jarlensworkspace "github.com/xddcode/jarlens/internal/workspace"
 )
 
@@ -28,6 +29,7 @@ const (
 	taskOpen taskKind = iota
 	taskDecompile
 	taskResource
+	taskUpdate
 )
 
 type taskResult struct {
@@ -37,6 +39,8 @@ type taskResult struct {
 	pane       *editorPane
 	workspace  *jarlensworkspace.Workspace
 	result     decompile.Result
+	update     *jarlensupdate.Release
+	automatic  bool
 	err        error
 }
 
@@ -98,11 +102,31 @@ type SettingsStore interface {
 }
 
 type Model struct {
-	Theme          Appearance
-	RecentStore    RecentStore
-	SettingsStore  SettingsStore
-	MaximizeWindow func()
-	RestoreWindow  func()
+	Theme                Appearance
+	RecentStore          RecentStore
+	SettingsStore        SettingsStore
+	MaximizeWindow       func()
+	RestoreWindow        func()
+	UpdateChecker        func(context.Context, jarlensupdate.Source) (jarlensupdate.Release, error)
+	UpdateReleasesLoader func(context.Context, jarlensupdate.Source, int, int) (jarlensupdate.ReleasePage, error)
+
+	updateRelease            *jarlensupdate.Release
+	updateChecking           bool
+	updateDialogOpen         bool
+	updateStatus             string
+	updateCancel             context.CancelFunc
+	updateReleases           []jarlensupdate.Release
+	updateReleasesLoading    bool
+	updateReleasesLoaded     bool
+	updateReleasesHasMore    bool
+	updateReleasesPage       int
+	updateReleasesSource     jarlensupdate.Source
+	updateReleasesError      string
+	updateReleasesGeneration uint64
+	updateReleasesCancel     context.CancelFunc
+	updateReleasesRequested  bool
+	updateReleaseExpanded    map[string]bool
+	pendingUpdateReleases    *updateReleasesResult
 
 	settings                   jarlensworkspace.Settings
 	settingsDraft              jarlensworkspace.Settings
@@ -110,6 +134,8 @@ type Model struct {
 	settingsFontSize           flex.Field
 	settingsSearch             flex.Field
 	settingsThemeSelect        flex.SelectState
+	settingsLanguageSelect     flex.SelectState
+	settingsUpdateSourceSelect flex.SelectState
 	settingsEngineSelect       flex.SelectState
 	settingsOpen               bool
 	settingsCategory           int
@@ -185,15 +211,19 @@ type Model struct {
 	linkDownOffset      int
 	sourcePointer       vivaui.Point
 	sourcePointerInside bool
+	selectingSource     bool
 
-	invalidator *app.Invalidator
-	mu          sync.Mutex
-	pending     *taskResult
-	generation  uint64
-	taskEntry   int
-	taskPane    *editorPane
-	cancel      context.CancelFunc
-	openURL     func(string) error
+	invalidator           *app.Invalidator
+	stopSystemAppearance  func()
+	nativeAppearance      app.Appearance
+	nativeAppearanceDirty bool
+	mu                    sync.Mutex
+	pending               *taskResult
+	generation            uint64
+	taskEntry             int
+	taskPane              *editorPane
+	cancel                context.CancelFunc
+	openURL               func(string) error
 }
 
 func (m *Model) initialize() {
@@ -240,8 +270,8 @@ func (m *Model) RestorePath(path string, maximize bool) {
 
 func (m *Model) chooseArchive() {
 	paths, err := app.OpenFiles(app.OpenFileOptions{
-		Title:   "打开 Java 归档",
-		Filters: []app.FileFilter{{Name: "Java 归档和类文件", Pattern: "*.jar;*.class"}},
+		Title:   m.t("打开 Java 归档"),
+		Filters: []app.FileFilter{{Name: m.t("Java 归档和类文件"), Pattern: "*.jar;*.class"}},
 	})
 	if err != nil {
 		m.fail("无法打开文件选择对话框", err)
@@ -277,7 +307,7 @@ func (m *Model) openPath(path string, maximize bool) {
 	generation := m.generation
 	m.taskEntry = -1
 	m.busy = true
-	m.status = "正在打开 " + filepath.Base(path)
+	m.status = m.tf("正在打开 %s", filepath.Base(path))
 	m.diagnostic = ""
 	go func() {
 		opened, err := jarlensworkspace.Open(path)
@@ -335,9 +365,9 @@ func (m *Model) startDocument(entryID int, revealName string, kind taskKind) {
 	m.diagnostic = ""
 	m.busy = true
 	if kind == taskResource {
-		m.status = "正在读取 " + doc.name
+		m.status = m.tf("正在读取 %s", doc.name)
 	} else {
-		m.status = "正在反编译 " + doc.name
+		m.status = m.tf("正在反编译 %s", doc.name)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	m.cancel = cancel
@@ -428,7 +458,7 @@ func (m *Model) activateDocument(index int) {
 	m.editor = doc.editor
 	m.code = doc.code
 	m.diagnostic = doc.diagnostic
-	m.status = "已打开 " + doc.name
+	m.status = m.tf("已打开 %s", doc.name)
 	m.syncActivePane()
 	m.revealProjectEntry(doc.entryID)
 }
@@ -511,7 +541,7 @@ func (m *Model) closeAllDocuments() {
 		m.closeDocument(len(m.documents) - 1)
 	}
 	m.tabsMenuOpen = false
-	m.status = "已关闭全部标签页"
+	m.status = m.t("关闭全部标签页")
 }
 
 func (m *Model) closeOtherDocuments() {
@@ -522,7 +552,7 @@ func (m *Model) closeOtherDocuments() {
 		}
 	}
 	m.tabsMenuOpen = false
-	m.status = "已关闭其他标签页"
+	m.status = m.t("关闭其他标签页")
 }
 
 func (m *Model) closeDocumentsToLeft() {
@@ -530,7 +560,7 @@ func (m *Model) closeDocumentsToLeft() {
 		m.closeDocument(0)
 	}
 	m.tabsMenuOpen = false
-	m.status = "已关闭左侧标签页"
+	m.status = m.t("关闭左侧标签页")
 }
 
 func (m *Model) closeDocumentsToRight() {
@@ -538,7 +568,7 @@ func (m *Model) closeDocumentsToRight() {
 		m.closeDocument(m.active + 1)
 	}
 	m.tabsMenuOpen = false
-	m.status = "已关闭右侧标签页"
+	m.status = m.t("关闭右侧标签页")
 }
 
 func (m *Model) clearCurrentDocument() {
@@ -567,7 +597,7 @@ func (m *Model) cancelWork() {
 	m.generation++
 	m.busy = false
 	m.taskEntry = -1
-	m.status = "操作已取消"
+	m.status = m.t("操作已取消")
 	m.diagnostic = ""
 }
 
@@ -581,11 +611,23 @@ func (m *Model) publish(result *taskResult) {
 }
 
 func (m *Model) wake() {
+	if m.settings.Theme == "system" {
+		m.applyThemePreference("system")
+	}
 	m.mu.Lock()
 	result := m.pending
 	m.pending = nil
+	releases := m.pendingUpdateReleases
+	m.pendingUpdateReleases = nil
 	m.mu.Unlock()
+	if releases != nil {
+		m.applyUpdateReleasesResult(releases)
+	}
 	if result == nil || result.generation != m.generation {
+		return
+	}
+	if result.kind == taskUpdate {
+		m.applyUpdateResult(result)
 		return
 	}
 	m.busy = false
@@ -599,7 +641,7 @@ func (m *Model) wake() {
 				m.diagnostic = doc.diagnostic
 			}
 		}
-		m.fail(operationError(result.err), result.err)
+		m.fail(m.operationError(result.err), result.err)
 		return
 	}
 
@@ -623,7 +665,7 @@ func (m *Model) wake() {
 				classes++
 			}
 		}
-		m.status = fmt.Sprintf("%s · %d 个类", filepath.Base(m.workspace.Archive.Path), classes)
+		m.status = m.tf("%s · %d 个类", filepath.Base(m.workspace.Archive.Path), classes)
 		m.diagnostic = ""
 	case taskDecompile, taskResource:
 		m.applyPaneResult(result)
@@ -646,8 +688,8 @@ func (m *Model) saveSource() {
 		extension = ".txt"
 	}
 	path, err := app.SaveFile(app.SaveFileOptions{
-		Title: "导出文档", SuggestedName: name,
-		DefaultExtension: extension, Filters: []app.FileFilter{{Name: "文档", Pattern: "*" + extension}},
+		Title: m.t("导出文档"), SuggestedName: name,
+		DefaultExtension: extension, Filters: []app.FileFilter{{Name: m.t("文档"), Pattern: "*" + extension}},
 	})
 	if err != nil {
 		m.fail("无法保存源码", err)
@@ -660,7 +702,7 @@ func (m *Model) saveSource() {
 		m.fail("无法保存源码", err)
 		return
 	}
-	m.status = "已导出 " + filepath.Base(path)
+	m.status = m.tf("已导出 %s", filepath.Base(path))
 }
 
 func (m *Model) openRepository() {
@@ -672,32 +714,41 @@ func (m *Model) openRepository() {
 		m.fail("无法打开 GitHub 仓库", err)
 		return
 	}
-	m.status = "正在打开 GitHub 仓库"
+	m.status = m.t("正在打开 GitHub 仓库")
 }
 
 func (m *Model) close() {
+	if m.stopSystemAppearance != nil {
+		m.stopSystemAppearance()
+		m.stopSystemAppearance = nil
+	}
 	m.stopCurrent()
+	if m.updateCancel != nil {
+		m.updateCancel()
+		m.updateCancel = nil
+	}
+	m.cancelUpdateReleases()
 	m.closeEngines()
 }
 
 func (m *Model) fail(message string, err error) {
-	m.status = message
+	m.status = m.t(message)
 	m.diagnostic = err.Error()
 }
 
-func operationError(err error) string {
+func (m *Model) operationError(err error) string {
 	switch {
 	case errors.Is(err, decompile.ErrJavaNotFound):
-		return "未找到 Java 运行时"
+		return m.t("未找到 Java 运行时")
 	case errors.Is(err, context.DeadlineExceeded):
-		return "反编译超时"
+		return m.t("反编译超时")
 	case errors.Is(err, context.Canceled):
-		return "操作已取消"
+		return m.t("操作已取消")
 	case errors.Is(err, archive.ErrUnsupportedFormat):
-		return "仅支持 JAR 和 Class 文件"
+		return m.t("仅支持 JAR 和 Class 文件")
 	case errors.Is(err, archive.ErrInvalidClass):
-		return "所选文件不是有效的 Java 类文件"
+		return m.t("所选文件不是有效的 Java 类文件")
 	default:
-		return "操作失败"
+		return m.t("操作失败")
 	}
 }

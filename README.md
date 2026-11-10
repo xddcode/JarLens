@@ -3,7 +3,7 @@
 [![CI](https://github.com/xddcode/jarlens/actions/workflows/ci.yml/badge.svg)](https://github.com/xddcode/jarlens/actions/workflows/ci.yml)
 [![Integration](https://github.com/xddcode/jarlens/actions/workflows/integration.yml/badge.svg)](https://github.com/xddcode/jarlens/actions/workflows/integration.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/Go-1.26.1%2B-00ADD8.svg)](go.mod)
+[![Go](https://img.shields.io/badge/Go-1.26.10%2B-00ADD8.svg)](go.mod)
 
 **English | [简体中文](README.zh-CN.md)**
 
@@ -15,6 +15,7 @@ A modern, GPU-native Java decompiler and code explorer built with Go and [Viva](
 
 - Native desktop rendering without Electron, a browser engine, or an embedded WebView.
 - An OpenIDEA/IntelliJ-style workbench with working Islands Dark and Islands Light themes.
+- Simplified Chinese, English, Japanese, and Korean interface languages with a persistent language selector.
 - A code-first workspace designed for reading, searching, and comparing decompiled Java.
 - Replaceable decompiler engine adapters rather than a UI tied to one engine.
 - Reproducible development, testing, and releases driven entirely through GitHub.
@@ -29,7 +30,7 @@ architecture-specific assets are published through GitHub Releases.
 
 ## Build from source
 
-Requirements: Go 1.26.1 or newer, a platform supported by Viva, and a Java 11+ runtime available as `java` for decompilation.
+Requirements: Go 1.26.10 or newer, a platform supported by Viva, and a Java 11+ runtime available as `java` for decompilation.
 
 ```sh
 git clone https://github.com/xddcode/jarlens.git
@@ -89,7 +90,7 @@ JarLens 正在积极开发，尚未发布正式版本。当前源码已支持打
 
 ### 本地运行
 
-环境要求：Go 1.26.1 或更高版本、Viva 支持的操作系统，以及可通过 `java` 命令访问的 Java 11+ 运行时。
+环境要求：Go 1.26.10 或更高版本、Viva 支持的操作系统，以及可通过 `java` 命令访问的 Java 11+ 运行时。
 
 ```sh
 git clone https://github.com/xddcode/jarlens.git

@@ -3,7 +3,7 @@
 [![CI](https://github.com/xddcode/jarlens/actions/workflows/ci.yml/badge.svg)](https://github.com/xddcode/jarlens/actions/workflows/ci.yml)
 [![集成测试](https://github.com/xddcode/jarlens/actions/workflows/integration.yml/badge.svg)](https://github.com/xddcode/jarlens/actions/workflows/integration.yml)
 [![许可证](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/Go-1.26.1%2B-00ADD8.svg)](go.mod)
+[![Go](https://img.shields.io/badge/Go-1.26.10%2B-00ADD8.svg)](go.mod)
 
 **[English](README.md) | 简体中文**
 
@@ -13,6 +13,7 @@ JarLens 是一款基于 Go 和 [Viva](https://github.com/vivaui/viva) 构建的�
 
 - 使用原生桌面渲染，不依赖 Electron、浏览器引擎或内嵌 WebView。
 - 提供 OpenIDEA/IntelliJ 风格的工作区，支持 Islands Dark 和 Islands Light 主题。
+- 提供简体中文、English、日本語和 한국어 四种界面语言，语言选择会自动保存。
 - 以反编译 Java 源码的阅读、搜索和对比为核心设计工作区。
 - 通过可替换的引擎适配器集成反编译器，避免 UI 与单一引擎绑定。
 - 默认在本地处理文件，不执行被分析的代码，也不上传源码。
@@ -27,7 +28,7 @@ JarLens 是一款基于 Go 和 [Viva](https://github.com/vivaui/viva) 构建的�
 
 ## 从源码构建
 
-环境要求：Go 1.26.1 或更高版本、Viva 支持的操作系统，以及可通过 `java` 命令访问的 Java 11+ 运行时。
+环境要求：Go 1.26.10 或更高版本、Viva 支持的操作系统，以及可通过 `java` 命令访问的 Java 11+ 运行时。
 
 ```sh
 git clone https://gitee.com/xddcode_admin/jar-lens.git

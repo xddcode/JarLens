@@ -177,6 +177,21 @@ var moonGlyph = vivaui.Icon{
 	},
 }
 
+// Refresh: OpenIDEA / IntelliJ Platform, Apache-2.0.
+var refreshGlyph = vivaui.Icon{
+	ViewBox: 16, Stroke: 1, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(2.5, 9), vivaui.LineTo(2.5, 8),
+		vivaui.CubicTo(2.5, 4.96243, 4.96243, 2.5, 8, 2.5),
+		vivaui.CubicTo(9.10679, 2.5, 10.1372, 2.82692, 11, 3.38947),
+		vivaui.MoveTo(5, 12.6105),
+		vivaui.CubicTo(5.86278, 13.1731, 6.89321, 13.5, 8, 13.5),
+		vivaui.CubicTo(11.0376, 13.5, 13.5, 11.0376, 13.5, 8), vivaui.LineTo(13.5, 7),
+		vivaui.MoveTo(0.5, 7.5), vivaui.LineTo(2.5, 9.5), vivaui.LineTo(4.5, 7.5),
+		vivaui.MoveTo(11.5, 8.5), vivaui.LineTo(13.5, 6.5), vivaui.LineTo(15.5, 8.5),
+	},
+}
+
 // GitHub mark: Simple Icons, CC0-1.0. Brand rights remain with their owner.
 var githubGlyph = vivaui.Icon{
 	ViewBox: 24,

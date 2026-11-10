@@ -114,7 +114,8 @@ recognition but never replaces labels, selection state, or accessible text.
   form a recursive pane tree rather than a fixed primary/secondary pair, so any
   pane can be split repeatedly in either direction. Each leaf is a complete panel
   with its own tab list, provenance banner, active document, caret, selection, and
-  scrolling. A 6-pixel frame-colored splitter separates adjacent panels; each
+  scrolling. Provenance banners use 8-pixel horizontal margins, 4-pixel vertical
+  margins, and a 6-pixel radius. A 6-pixel frame-colored splitter separates adjacent panels; each
   parent node owns its position, so nested panes resize independently by pointer
   drag or the keyboard arrows. The project
   tree opens documents in the active pane, and tab close actions and the primary
@@ -161,8 +162,12 @@ identity, but workbench selection and focus follow the semantic blue accent.
 
 ## Themes
 
-- **Islands Dark** is the default.
-- **Islands Light** is available through the working titlebar theme switch.
+- **Islands Dark** is the default and appears as **深色** in Settings.
+- **Islands Light** appears as **浅色** and is also available through the working
+  titlebar theme switch.
+- **跟随系统** resolves the workbench through `app.SystemAppearance` and listens
+  for operating-system changes with `app.WatchSystemAppearance`. An unknown
+  system preference falls back to Dark.
 - High Contrast, Solarized, and Atom One are possible future additions, not
   advertised as available.
 - Every new theme must define every semantic token, use the same metrics, pass
@@ -170,20 +175,25 @@ identity, but workbench selection and focus follow the semantic blue accent.
 - Editor syntax colors use theme-linked, separately identifiable schemes for
   Java and supported text resources.
 
-Theme choice, UI font, code font and size, line numbers, current-line highlight,
-Java executable, and startup restoration persist in `settings.json` in the user
-configuration directory. The settings dialog follows OpenIDEA: a 240-pixel page
-tree, breadcrumbs with back/forward history, per-page Reset, titled section
-separators, compact form rows, checkboxes, and an inline footer error. Its tree
-groups Appearance and System Settings under Appearance and Behavior, and Font
-and General under Editor. Search filters pages and highlights matching labels;
-Escape clears a non-empty query before dismissing the dialog, while Up/Down
-changes pages without leaving the search field. Edits are staged and mark their
-pages dirty. Apply is enabled only for pending changes and saves without closing;
-OK saves and closes; Cancel discards unapplied edits. The last selected page is
-remembered across openings. The current UI language is Simplified Chinese; an
-English switch is not claimed. Operating-system theme synchronization remains
-future work.
+Theme choice, interface language, UI font, code font and size, Tab width,
+indentation guides, line numbers, current-line highlight, Java executable,
+startup restoration, automatic update checks, and update source persist in
+`settings.json` in the user configuration directory. The settings dialog follows
+OpenIDEA: a 240-pixel page tree, breadcrumbs with back/forward history, per-page
+Reset, titled section separators, compact form rows, checkboxes, and an inline
+footer error. Its tree groups Appearance and System Settings under Appearance and
+Behavior, Font and General under Editor, and provides Update Management as a root
+page. Search filters pages and highlights matching labels; Escape clears a
+non-empty query before dismissing the dialog, while Up/Down changes pages without
+leaving the search field. Edits are staged and mark their pages dirty. Apply is
+enabled only for pending changes and saves without closing; OK saves and closes;
+Cancel discards unapplied edits. The last selected page is remembered across
+openings. Update Management selects GitHub or CNB for both update checks and
+release history. Five stable releases load per page, with expandable notes,
+publication dates, refresh, and load-more controls. GitHub uses its public release
+API; CNB reads the public release page without requiring a user token. Opening a
+download page requires a user click. The checker never downloads or executes a
+package or replaces the running program.
 
 ## Typography and source
 
@@ -193,18 +203,28 @@ JetBrains Mono at 13 pixels on a character grid. Both are registered only for th
 JarLens process, retain their OFL notices, and use system fallback for scripts the
 fonts do not cover.
 
-The workspace currently uses Simplified Chinese for user-visible controls, menus,
-tooltips, dialogs, and status messages. English localization will use a shared
-message catalog later; no language switch is currently available.
+The workspace provides Simplified Chinese, English, Japanese, and Korean for
+controls, menus, tooltips, dialogs, settings search, and status messages. The
+shared catalog in `internal/ui/i18n.go` and `internal/ui/i18n_catalog.go` resolves
+text at paint time, so applying a language updates the open workspace immediately.
+Simplified Chinese is the default and fallback for missing translations. Language
+names remain in their native scripts, and release-note content remains in the
+language supplied by its publisher.
 
 The source view is read-only and includes line numbers, current-line feedback,
 selection, bracket matching, vertical and horizontal scrolling, and keyboard
-navigation. A quiet source-provenance banner names the decompiler and version.
+navigation. Compact (2), Default (4), and Relaxed (6) presets reindent the
+displayed source and its indentation guides without modifying the original
+archive. Java uses brace nesting outside strings, comments, and text blocks;
+text resources scale their existing leading-indent levels. Exports match the
+displayed indentation. A quiet source-provenance banner names the decompiler and version.
 Source find highlights its matches. Resolvable class names in Java and
 `META-INF/services` documents are blue, underlined links: clicking opens the target
 class, selects its declaration, and reveals the target in the project tree. Opening
 or switching documents expands the tree's parents and scrolls the node into view.
-Comments, strings, and unresolved names are not links. Folding remains future work.
+Comments, strings, and unresolved names are not links. XML syntax highlighting
+separates tag names, attribute names, quoted values, comments, declarations, and
+entities rather than coloring the entire angle-bracket block. Folding remains future work.
 Decompiled code is identified as generated output; minimap and decorative effects
 are not required.
 

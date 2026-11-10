@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Go 1.26.1 or newer.
+- Go 1.26.10 or newer.
 - Windows 10/11, macOS with Xcode command-line tools, or Linux/X11 with Viva's
   system graphics dependencies.
 - Git. Make is recommended for the shared quality commands.

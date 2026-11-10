@@ -6,9 +6,25 @@ All notable changes to JarLens are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-beta.3] - 2026-11-10
+
 ### Added
 
+- Simplified Chinese, English, Japanese, and Korean interface languages with immediate switching, localized settings search, and persistent preferences.
 - Selectable built-in Vineflower 1.12.0, CFR 0.152, and Procyon 0.6.0 decompiler engines with persistent settings and accurate source provenance.
+- Update checks and release history from the default official source or CNB, with optional automatic checks and no automatic installation.
+- System-appearance following alongside explicit dark and light themes.
+- Compact 2-column, default 4-column, and relaxed 6-column source indentation presets with independently configurable indentation guides.
+- CNB branch, tag, release-note, and asset synchronization through GitHub Actions.
+
+### Changed
+
+- Upgraded the build requirement to Go 1.26.10 for current standard-library security fixes.
+- Refreshed the application icon, OpenIDEA refresh glyph, and rounded inset decompiler banner.
+
+### Fixed
+
+- Dismiss settings selects on outside clicks and finish source drag selection before class-link navigation.
 
 ## [0.1.0-beta.2] - 2026-11-10
 

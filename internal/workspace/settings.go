@@ -9,18 +9,23 @@ import (
 
 type Settings struct {
 	Theme                string `json:"theme"`
+	Language             string `json:"language"`
 	JavaPath             string `json:"javaPath"`
 	Engine               string `json:"engine"`
 	FontSize             int    `json:"fontSize"`
 	UIFont               string `json:"uiFont"`
 	CodeFont             string `json:"codeFont"`
+	TabWidth             int    `json:"tabWidth"`
+	ShowIndentGuides     bool   `json:"showIndentGuides"`
 	ShowLineNumbers      bool   `json:"showLineNumbers"`
 	HighlightCurrentLine bool   `json:"highlightCurrentLine"`
 	RestoreLastProject   bool   `json:"restoreLastProject"`
+	CheckUpdates         bool   `json:"checkUpdates"`
+	UpdateSource         string `json:"updateSource"`
 }
 
 func DefaultSettings() Settings {
-	return Settings{Theme: "dark", Engine: "vineflower", FontSize: 13, UIFont: "inter", CodeFont: "jetbrains", ShowLineNumbers: true, HighlightCurrentLine: true, RestoreLastProject: true}
+	return Settings{Theme: "dark", Language: "zh-CN", Engine: "vineflower", FontSize: 13, UIFont: "inter", CodeFont: "jetbrains", TabWidth: 4, ShowIndentGuides: true, ShowLineNumbers: true, HighlightCurrentLine: true, RestoreLastProject: true, CheckUpdates: true, UpdateSource: "github"}
 }
 
 type SettingsStore struct {
@@ -48,12 +53,19 @@ func (store *SettingsStore) Load() Settings {
 	if err != nil {
 		return settings
 	}
-	var saved Settings
+	var saved struct {
+		Settings
+		ShowIndentGuides *bool `json:"showIndentGuides"`
+		CheckUpdates     *bool `json:"checkUpdates"`
+	}
 	if json.Unmarshal(data, &saved) != nil {
 		return settings
 	}
-	if saved.Theme == "light" || saved.Theme == "dark" {
+	if saved.Theme == "light" || saved.Theme == "dark" || saved.Theme == "system" {
 		settings.Theme = saved.Theme
+	}
+	if saved.Language == "zh-CN" || saved.Language == "en" || saved.Language == "ja" || saved.Language == "ko" {
+		settings.Language = saved.Language
 	}
 	settings.JavaPath = strings.TrimSpace(saved.JavaPath)
 	if saved.FontSize >= 10 && saved.FontSize <= 24 {
@@ -65,9 +77,21 @@ func (store *SettingsStore) Load() Settings {
 	if saved.CodeFont == "jetbrains" || saved.CodeFont == "system" || strings.HasPrefix(saved.CodeFont, "family:") {
 		settings.CodeFont = saved.CodeFont
 	}
+	if saved.TabWidth == 2 || saved.TabWidth == 4 || saved.TabWidth == 6 {
+		settings.TabWidth = saved.TabWidth
+	}
+	if saved.ShowIndentGuides != nil {
+		settings.ShowIndentGuides = *saved.ShowIndentGuides
+	}
 	settings.ShowLineNumbers = saved.ShowLineNumbers
 	settings.HighlightCurrentLine = saved.HighlightCurrentLine
 	settings.RestoreLastProject = saved.RestoreLastProject
+	if saved.CheckUpdates != nil {
+		settings.CheckUpdates = *saved.CheckUpdates
+	}
+	if saved.UpdateSource == "github" || saved.UpdateSource == "cnb" {
+		settings.UpdateSource = saved.UpdateSource
+	}
 	if saved.Engine == "vineflower" || saved.Engine == "cfr" || saved.Engine == "procyon" {
 		settings.Engine = saved.Engine
 	}
