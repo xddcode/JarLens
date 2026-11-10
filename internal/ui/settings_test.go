@@ -37,7 +37,7 @@ func openSettingsForTest(t *testing.T, driver *app.Driver) {
 
 func selectSettingsTheme(t *testing.T, driver *app.Driver, index int) {
 	t.Helper()
-	click(t, driver, settingsTheme.At(2))
+	click(t, driver, settingsTheme.At(3))
 	click(t, driver, settingsTheme.At(index))
 }
 
@@ -88,6 +88,8 @@ func TestSettingsEditorAndSystemPages(t *testing.T) {
 	click(t, driver, settingsCodeFontChoose)
 	click(t, driver, settingsCodeFont.At(1))
 	click(t, driver, settingsNav.At(4))
+	click(t, driver, settingsTabWidth.At(0))
+	click(t, driver, settingsIndentGuides)
 	click(t, driver, settingsLineNumbers)
 	m.view.ScrollState(settingsContentScroll).ScrollToEnd()
 	if err := driver.Move(0, 0); err != nil {
@@ -100,7 +102,7 @@ func TestSettingsEditorAndSystemPages(t *testing.T) {
 	if !m.settingsOpen || store.saves != 1 {
 		t.Fatal("Apply did not save settings while keeping the dialog open")
 	}
-	if m.settings.CodeFont != "system" || m.settings.ShowLineNumbers || m.settings.HighlightCurrentLine || m.settings.RestoreLastProject {
+	if m.settings.CodeFont != "system" || m.settings.ShowIndentGuides || m.settings.ShowLineNumbers || m.settings.HighlightCurrentLine || m.settings.RestoreLastProject {
 		t.Fatalf("editor or system settings were not applied: %+v", m.settings)
 	}
 	if m.settingsDirty() {
@@ -134,12 +136,36 @@ func TestSettingsApplyOnlyWhenDirty(t *testing.T) {
 	}
 }
 
+func TestSettingsSelectAndPersistDecompilerEngine(t *testing.T) {
+	store := &memorySettingsStore{settings: jarlensworkspace.DefaultSettings()}
+	m := &Model{SettingsStore: store}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	openSettingsForTest(t, driver)
+	click(t, driver, settingsNav.At(5))
+	click(t, driver, settingsEngine.At(3))
+	click(t, driver, settingsEngine.At(1))
+	click(t, driver, settingsApply)
+	if store.saves != 1 || m.settings.Engine != "cfr" || m.engine.Name() != "CFR" {
+		t.Fatalf("CFR was not selected and persisted: %+v", m.settings)
+	}
+
+	openSettingsForTest(t, driver)
+	click(t, driver, settingsNav.At(5))
+	click(t, driver, settingsEngine.At(3))
+	click(t, driver, settingsEngine.At(2))
+	click(t, driver, settingsCancel)
+	if m.settings.Engine != "cfr" || m.engine.Name() != "CFR" {
+		t.Fatal("Cancel changed the applied decompiler engine")
+	}
+}
+
 func TestSettingsThemeSelectRemainsVisibleDuringEntrance(t *testing.T) {
 	m := &Model{}
 	driver := newDriver(t, m)
 	defer driver.Close()
 	openSettingsForTest(t, driver)
-	click(t, driver, settingsTheme.At(2))
+	click(t, driver, settingsTheme.At(3))
 
 	for _, interval := range []time.Duration{0, 16 * time.Millisecond, 64 * time.Millisecond, 200 * time.Millisecond} {
 		if interval > 0 {
@@ -150,7 +176,7 @@ func TestSettingsThemeSelectRemainsVisibleDuringEntrance(t *testing.T) {
 		if !m.settingsThemeSelect.Open || !m.settingsOpen {
 			t.Fatalf("select closed during its entrance after %v", interval)
 		}
-		if !hasHit(driver, settingsTheme.At(0), "Islands Dark") || !hasHit(driver, settingsTheme.At(1), "Islands Light") {
+		if !hasHit(driver, settingsTheme.At(0), "深色") || !hasHit(driver, settingsTheme.At(1), "浅色") || !hasHit(driver, settingsTheme.At(2), "跟随系统") {
 			t.Fatalf("select options disappeared during its entrance after %v", interval)
 		}
 		if !shows(driver, "设置") {
@@ -160,6 +186,30 @@ func TestSettingsThemeSelectRemainsVisibleDuringEntrance(t *testing.T) {
 	click(t, driver, settingsTheme.At(1))
 	if m.settingsThemeSelect.Open || m.settingsDraft.Theme != "light" {
 		t.Fatal("select did not apply the chosen theme and close")
+	}
+}
+
+func TestSettingsFollowSystemAppearance(t *testing.T) {
+	store := &memorySettingsStore{settings: jarlensworkspace.DefaultSettings()}
+	m := &Model{SettingsStore: store}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	driver.SetSystemAppearance(app.AppearanceLight)
+
+	openSettingsForTest(t, driver)
+	selectSettingsTheme(t, driver, 2)
+	click(t, driver, settingsApply)
+	if store.saves != 1 || m.settings.Theme != "system" || m.Theme != AppearanceLight {
+		t.Fatalf("system theme was not applied and persisted: settings=%+v appearance=%v", m.settings, m.Theme)
+	}
+	if got := driver.NativeAppearance(); got != app.AppearanceUnknown {
+		t.Fatalf("native appearance = %v, want system-controlled", got)
+	}
+
+	driver.SetSystemAppearance(app.AppearanceDark)
+	pumpUntil(t, driver, func() bool { return m.Theme == AppearanceDark })
+	if m.settings.Theme != "system" {
+		t.Fatal("system appearance change replaced the saved preference")
 	}
 }
 

@@ -68,6 +68,7 @@ func main() {
 		} else if path != "" {
 			model.OpenPath(path)
 		}
+		model.CheckForUpdates(true)
 		return nil
 	})
 	if err != nil {

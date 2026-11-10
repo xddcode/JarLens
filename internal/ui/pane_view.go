@@ -45,22 +45,24 @@ func (m *Model) paintEditorPanes(f *flex.Frame, theme vivaui.Theme) (map[*editor
 					f.Text(m.status).FontSize(13).Muted()
 				})
 			case doc != nil && doc.source != "":
-				f.Row().Height(36).PadX(12).Gap(8).Items(flex.Center).Background(editorBannerBackground(m.Theme)).Children(func() {
-					f.Icon(infoGlyph).Size(14, 14).Color(theme.MutedForeground)
-					f.Text(doc.sourceInfo).FontSize(12).Color(theme.AccentForeground).Ellipsis()
+				f.Row().Height(40).PadSides(4, 8, 4, 8).Children(func() {
+					f.Row().Fill().PadX(12).Gap(8).Items(flex.Center).Radius(6).Background(editorBannerBackground(m.Theme)).Children(func() {
+						f.Icon(infoGlyph).Size(14, 14).Color(theme.MutedForeground)
+						f.Text(doc.sourceInfo).FontSize(12).Color(theme.AccentForeground).Ellipsis()
+					})
 				})
 				f.Divider()
 				sources[pane] = f.Slot().Grow(1)
 			case doc != nil && doc.diagnostic != "":
 				f.Column().Grow(1).Justify(flex.Center).Pad(48).Gap(8).Children(func() {
-					f.Text("无法显示内容").FontSize(18).Bold()
+					f.Text(m.t("无法显示内容")).FontSize(18).Bold()
 					f.Paragraph(doc.diagnostic, 4).Muted()
 				})
 			case len(paneDocuments(m, pane)) == 0:
 				m.paintWelcome(f, theme)
 			default:
 				f.Column().Grow(1).Center().Children(func() {
-					f.Text("没有可显示的源代码").FontSize(16).Muted()
+					f.Text(m.t("没有可显示的源代码")).FontSize(16).Muted()
 				})
 			}
 		})
@@ -136,7 +138,7 @@ func (m *Model) paintEditorHeaderForPane(f *flex.Frame, theme vivaui.Theme, pane
 				closeHovered := f.Canvas().Hovered() == closeID
 				closePressed := f.Canvas().Pressed() == closeID
 				close := f.Row().Size(20, 20).MarginSides(0, 4, 0, 0).Center().Radius(4).
-					HitWith(closeID, "关闭 "+doc.name, vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "关闭 " + doc.name + " (Ctrl+W)", Cursor: vivaui.PointerCursorHand})
+					HitWith(closeID, m.tf("关闭 %s", doc.name), vivaui.HitOptions{Role: vivaui.RoleButton, Hint: m.tf("关闭 %s (Ctrl+W)", doc.name), Cursor: vivaui.PointerCursorHand})
 				if f.Canvas().FocusVisible() == closeID {
 					close = close.Stroke(2, theme.Ring)
 				}
@@ -186,7 +188,7 @@ func (m *Model) paintEditorHeaderForPane(f *flex.Frame, theme vivaui.Theme, pane
 			moreHover = toolbarPressedColor(m.Theme)
 		}
 		more = f.Row().Size(28, 28).Center().Radius(6).Hover(flex.Look{}.Background(moreHover)).
-			HitWith(paneMenuID(pane), "标签页操作", vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "标签页操作", Expanded: menuOpen, Cursor: vivaui.PointerCursorHand})
+			HitWith(paneMenuID(pane), m.t("标签页操作"), vivaui.HitOptions{Role: vivaui.RoleButton, Hint: m.t("标签页操作"), Expanded: menuOpen, Cursor: vivaui.PointerCursorHand})
 		if menuOpen {
 			more = more.Background(moreHover)
 		}

@@ -62,7 +62,7 @@ func (m *Model) findStatus() string {
 		return ""
 	}
 	if len(m.findMatches) == 0 {
-		return "无匹配项"
+		return m.t("无匹配项")
 	}
 	return fmt.Sprintf("%d/%d", m.findIndex+1, len(m.findMatches))
 }

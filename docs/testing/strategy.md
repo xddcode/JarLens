@@ -39,7 +39,7 @@ open archive -> expand package -> select class -> decompile -> read source -> ex
 ```
 
 The `integration` build tag additionally compiles a real Java fixture with JDK 21
-and decompiles it with the embedded Vineflower engine. `tools/runtime_test.py`
+and decompiles it with the embedded Vineflower, CFR, and Procyon engines. `tools/runtime_test.py`
 verifies runtime selection and ZIP/tar.gz bundle contents. Standard-package smoke
 verification launches without a system Java executable and confirms decompilation
 uses the managed runtime. Native Windows verification uses UI Automation and a

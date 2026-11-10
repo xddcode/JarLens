@@ -1,0 +1,68 @@
+# Mirror repository to CNB.cool
+# 将当前仓库的所有分支和标签同步到 cnb.cool 远程仓库
+name: Mirror to CNB
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**'       # 所有标签的推送都会触发
+  delete:           # 分支或标签删除时也同步
+  release:
+    types: [published, edited]
+
+jobs:
+  mirror:
+    name: Mirror to CNB.cool
+    if: github.actor == 'xddcode' && github.event_name != 'release'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # 获取完整的 git 历史记录，包括所有分支和标签
+
+      - name: Push to CNB mirror
+        env:
+          CNB_USERNAME: ${{ secrets.CNB_USERNAME }}
+          CNB_TOKEN: ${{ secrets.CNB_TOKEN }}
+        run: |
+          # 设置 CNB 远程仓库地址（使用认证信息）
+          # Set CNB remote URL with authentication
+          git remote add cnb "https://${CNB_USERNAME}:${CNB_TOKEN}@cnb.cool/xddcode/JarLens.git"
+
+          # 推送所有分支和标签到 CNB 远程仓库
+          # Push all branches and tags to CNB mirror
+          git push cnb --all --force
+          git push cnb --tags --force
+
+
+  sync-release:
+    name: Synchronize Release to CNB.cool
+    if: github.actor == 'xddcode' && github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Synchronize release notes and assets
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          CNB_USERNAME: ${{ secrets.CNB_USERNAME }}
+          CNB_TOKEN: ${{ secrets.CNB_TOKEN }}
+          GITHUB_USERNAME: xddcode
+          GITHUB_TOKEN: ${{ github.token }}
+          MPGRM_SHA256: a21b53f64473263c99c37963fc17568ae21b2456a82f4b7e8e2b6afbc64809d8
+        run: |
+          set -euo pipefail
+          wget -q https://cnb.cool/znb/mpgrm/-/releases/download/v0.1.0/mpgrm_linux_amd64.tar.gz \
+            -O "$RUNNER_TEMP/mpgrm_linux_amd64.tar.gz"
+          echo "$MPGRM_SHA256  $RUNNER_TEMP/mpgrm_linux_amd64.tar.gz" | sha256sum -c -
+          tar -xf "$RUNNER_TEMP/mpgrm_linux_amd64.tar.gz" -C "$RUNNER_TEMP"
+          chmod +x "$RUNNER_TEMP/mpgrm"
+          "$RUNNER_TEMP/mpgrm" releases sync \
+            --repo "https://github.com/${GITHUB_REPOSITORY}.git" \
+            --target-repo "https://cnb.cool/xddcode/JarLens.git" \
+            --tags "$RELEASE_TAG"

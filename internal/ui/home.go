@@ -16,24 +16,24 @@ func (m *Model) paintHome(f *flex.Frame, theme vivaui.Theme) {
 				}
 				f.Column().Gap(4).Children(func() {
 					f.Text("JarLens").FontSize(24).Bold()
-					f.Text("打开 Java 归档，浏览和反编译类文件").FontSize(13).Muted()
+					f.Text(m.t("打开 Java 归档，浏览和反编译类文件")).FontSize(13).Muted()
 				})
 			})
 			open := f.Row().FillWidth().Height(44).PadX(14).Gap(10).Items(flex.Center).Radius(6).
 				Background(theme.Secondary).Hover(flex.Look{}.Background(theme.Hover)).
-				HitWith(homeOpen, "打开...", vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "打开 JAR 或 Class 文件 (Ctrl+O)", Cursor: vivaui.PointerCursorHand})
+				HitWith(homeOpen, m.t("打开..."), vivaui.HitOptions{Role: vivaui.RoleButton, Hint: m.t("打开 JAR 或 Class 文件 (Ctrl+O)"), Cursor: vivaui.PointerCursorHand})
 			open.Children(func() {
 				f.Icon(openGlyph).Size(18, 18).Color(theme.SecondaryForeground)
-				f.Text("打开...").FontSize(14).Color(theme.AccentForeground)
+				f.Text(m.t("打开...")).FontSize(14).Color(theme.AccentForeground)
 				f.Spacer()
 				f.Text("Ctrl+O").FontSize(12).Muted()
 			})
 			if open.Clicked() {
 				f.Canvas().AfterPaint(m.chooseArchive)
 			}
-			f.Text("或将 JAR / Class 文件拖放到此处").FontSize(13).Muted().TextCenter()
+			f.Text(m.t("或将 JAR / Class 文件拖放到此处")).FontSize(13).Muted().TextCenter()
 			if len(m.recentProjects) > 0 {
-				f.Text("最近项目").FontSize(13).Weight(vivaui.WeightSemibold).Color(theme.AccentForeground).MarginSides(6, 0, 0, 0)
+				f.Text(m.t("最近项目")).FontSize(13).Weight(vivaui.WeightSemibold).Color(theme.AccentForeground).MarginSides(6, 0, 0, 0)
 				f.ScrollArea(homeRecentList).FillWidth().MaxHeight(420).Gap(4).Children(func() {
 					for index, path := range m.recentProjects {
 						name := filepath.Base(path)

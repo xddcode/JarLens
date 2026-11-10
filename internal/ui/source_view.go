@@ -31,8 +31,9 @@ func (m *Model) paintSourceView(canvas *vivaui.Canvas, theme vivaui.Theme, bound
 		ReadOnly: true, Focused: focused, ShowCaret: showCaret,
 		Caret:          editor.ByteOffset(editor.Caret()),
 		SelectionStart: editor.ByteOffset(selection.Start), SelectionEnd: editor.ByteOffset(selection.End),
-		FontSize: float32(m.settings.FontSize), MonoFace: m.codeFace, TabWidth: 4,
+		FontSize: float32(m.settings.FontSize), MonoFace: m.codeFace, TabWidth: m.settings.TabWidth,
 		LineNumbers: m.settings.ShowLineNumbers, CurrentLine: m.settings.HighlightCurrentLine, MatchBrackets: true,
+		ShowIndentGuides: m.settings.ShowIndentGuides, InvisibleColor: theme.MutedForeground,
 		Language: doc.language, ScrollbarID: scrollbarID, HorizontalScrollbarID: horizontalScrollbarID,
 	}
 	if findOpen && len(m.findMatches) > 0 {

@@ -138,9 +138,9 @@ func (m *Model) splitDocument(index int, direction splitDirection) {
 	m.focusPane = second
 	m.tabsContextOpen = false
 	if direction == splitDown {
-		m.status = "已向下拆分 " + source.name
+		m.status = m.tf("已向下拆分 %s", source.name)
 	} else {
-		m.status = "已向右拆分 " + source.name
+		m.status = m.tf("已向右拆分 %s", source.name)
 	}
 }
 
@@ -283,8 +283,8 @@ func (m *Model) applyPaneResult(result *taskResult) {
 	}
 	doc := pane.documents[index]
 	doc.loading = false
-	doc.source = result.result.Source
-	doc.sourceInfo = "反编译引擎：" + result.result.Engine + " " + result.result.EngineVersion
+	doc.source = reindentSource(result.result.Source, doc.language, sourceIndentWidth(doc.language), m.settings.TabWidth)
+	doc.sourceInfo = m.t("反编译引擎：") + result.result.Engine + " " + result.result.EngineVersion
 	doc.diagnostic = ""
 	doc.editor = text.NewEditor(doc.source)
 	doc.code = components.CodeEditor{}
@@ -305,11 +305,11 @@ func (m *Model) applyPaneResult(result *taskResult) {
 		doc.revealName = ""
 	}
 	if result.kind == taskResource {
-		doc.sourceInfo = "文本资源 · UTF-8"
+		doc.sourceInfo = m.t("文本资源 · UTF-8")
 		if pane == m.activePane {
 			m.sourceInfo = doc.sourceInfo
 		}
-		m.status = "已打开 " + doc.name
+		m.status = m.tf("已打开 %s", doc.name)
 	} else {
 		m.status = result.result.Engine + " " + result.result.EngineVersion
 	}

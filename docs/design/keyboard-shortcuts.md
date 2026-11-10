@@ -18,6 +18,8 @@ Shortcuts do not override text editing expectations.
 | Show project filter | Primary+Shift+F | Available |
 | Go to line | Primary+G | Available |
 | Settings | Primary+Alt+S | Available |
+| Select all source | Primary+A | Available |
+| Copy selected source | Primary+C | Available |
 | Next/previous match | Primary+Enter / Primary+Shift+Enter | Available |
 | Cancel current task | Escape, when task focused | M1 |
 | Source/engine diff | No default initially | M3 |

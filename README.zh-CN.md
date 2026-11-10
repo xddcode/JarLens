@@ -13,6 +13,7 @@ JarLens 是一款基于 Go 和 [Viva](https://github.com/vivaui/viva) 构建的�
 
 - 使用原生桌面渲染，不依赖 Electron、浏览器引擎或内嵌 WebView。
 - 提供 OpenIDEA/IntelliJ 风格的工作区，支持 Islands Dark 和 Islands Light 主题。
+- 提供简体中文、English、日本語和 한국어 四种界面语言，语言选择会自动保存。
 - 以反编译 Java 源码的阅读、搜索和对比为核心设计工作区。
 - 通过可替换的引擎适配器集成反编译器，避免 UI 与单一引擎绑定。
 - 默认在本地处理文件，不执行被分析的代码，也不上传源码。
@@ -60,7 +61,7 @@ go tool viva build
 - 自动记录窗口位置、尺寸和最大化状态；下次启动可直接恢复最近打开的项目。
 - 项目下拉菜单支持当前项目、最近项目和 Home 之间的切换。
 - 支持 JAR/Class 打开、延迟加载的包与类树、项目筛选和横向滚动。
-- 使用 Vineflower 1.12.0 反编译 Java 类，支持任务取消、错误诊断和源码导出。
+- 可选择 Vineflower 1.12.0、CFR 0.152 或 Procyon 0.6.0 反编译 Java 类，支持任务取消、错误诊断和源码导出。
 - 多文档标签页保留独立的编辑器状态，支持关闭、左右拆分和上下拆分。
 - 支持 Java 语法高亮、类链接跳转、源码查找和转到行。
 - 支持 XML、JSON、YAML、Manifest 及其他 UTF-8/UTF-16 文本资源。

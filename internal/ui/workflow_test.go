@@ -104,6 +104,15 @@ func TestOpenDecompileAndExportWorkflow(t *testing.T) {
 			t.Errorf("workspace does not show %q after decompilation", want)
 		}
 	}
+	bannerFound := false
+	for _, primitive := range driver.Snapshot().Primitives {
+		if primitive.Color == editorBannerBackground(m.Theme) && primitive.Radius == 6 && primitive.Bounds.X >= 8 && primitive.Bounds.X+primitive.Bounds.Width <= 1192 {
+			bannerFound = true
+		}
+	}
+	if !bannerFound {
+		t.Fatal("engine banner does not have rounded corners and horizontal margins")
+	}
 	classSelection := m.editor.Selection()
 	if got := m.source[m.editor.ByteOffset(classSelection.Start):m.editor.ByteOffset(classSelection.End)]; got != "Hello" {
 		t.Fatalf("outer class name was not selected after opening: %q", got)
@@ -146,6 +155,81 @@ func TestOpenDecompileAndExportWorkflow(t *testing.T) {
 	}
 	if string(data) != engine.source {
 		t.Fatal("exported source differs from the displayed source")
+	}
+}
+
+func TestSettingsTabWidthChangesSourceLayout(t *testing.T) {
+	jar := writeWorkflowJAR(t)
+	m := &Model{engine: &fakeEngine{source: "class Hello {\n    void run() {\n        if (true) {\n            " + strings.Repeat("x", 300) + "();\n        }\n    }\n}\n"}}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	if err := driver.QueueOpenFiles([]string{jar}, nil); err != nil {
+		t.Fatal(err)
+	}
+	click(t, driver, archiveOpen)
+	pumpUntil(t, driver, func() bool { return m.workspace != nil })
+	click(t, driver, projectNodes.At(findNodeID(t, m, "example")))
+	click(t, driver, projectNodes.At(findNodeID(t, m, "Hello.class")))
+	pumpUntil(t, driver, func() bool { return m.source != "" })
+	before := m.code.MaxScrollX()
+	if before <= 0 {
+		t.Fatal("indented source does not require horizontal scrolling")
+	}
+
+	openSettingsForTest(t, driver)
+	click(t, driver, settingsNav.At(4))
+	click(t, driver, settingsTabWidth.At(0))
+	click(t, driver, settingsApply)
+	after := m.code.MaxScrollX()
+	if m.settings.TabWidth != 2 || after >= before {
+		t.Fatalf("tab width did not change source layout: before=%v after=%v setting=%d", before, after, m.settings.TabWidth)
+	}
+}
+
+func TestSettingsTabWidthReindentsSourceAndGuides(t *testing.T) {
+	jar := writeWorkflowJAR(t)
+	m := &Model{engine: &fakeEngine{source: "if (ready) {\n        work();\n}"}}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	if err := driver.QueueOpenFiles([]string{jar}, nil); err != nil {
+		t.Fatal(err)
+	}
+	click(t, driver, archiveOpen)
+	pumpUntil(t, driver, func() bool { return m.workspace != nil })
+	click(t, driver, projectNodes.At(findNodeID(t, m, "example")))
+	click(t, driver, projectNodes.At(findNodeID(t, m, "Hello.class")))
+	pumpUntil(t, driver, func() bool { return m.source != "" })
+	guideColor := WorkspaceTheme(m.Theme).MutedForeground
+	guideColor.Alpha *= 0.5
+	guideCount := func() int {
+		bounds := map[ui.Rect]struct{}{}
+		for _, primitive := range driver.Snapshot().Primitives {
+			if primitive.Color == guideColor && primitive.Bounds.Width == 1 {
+				bounds[primitive.Bounds] = struct{}{}
+			}
+		}
+		return len(bounds)
+	}
+	if m.source != "if (ready) {\n    work();\n}" || guideCount() != 1 {
+		t.Fatalf("default indentation = %q with %d guides", m.source, guideCount())
+	}
+
+	openSettingsForTest(t, driver)
+	click(t, driver, settingsNav.At(4))
+	click(t, driver, settingsTabWidth.At(0))
+	click(t, driver, settingsApply)
+	if m.source != "if (ready) {\n  work();\n}" || guideCount() != 1 {
+		t.Fatalf("compact indentation = %q with %d guides", m.source, guideCount())
+	}
+	click(t, driver, settingsTabWidth.At(2))
+	click(t, driver, settingsApply)
+	if m.source != "if (ready) {\n      work();\n}" || guideCount() != 1 {
+		t.Fatalf("relaxed indentation = %q with %d guides", m.source, guideCount())
+	}
+	click(t, driver, settingsIndentGuides)
+	click(t, driver, settingsApply)
+	if m.settings.ShowIndentGuides || m.source != "if (ready) {\n      work();\n}" || guideCount() != 0 {
+		t.Fatalf("disabled indent guides remain visible: source=%q guides=%d", m.source, guideCount())
 	}
 }
 
@@ -917,7 +1001,8 @@ func TestNestedClassDisclosureAndOpen(t *testing.T) {
 	if len(m.documents) != 1 || m.documents[0].entryID != 0 || m.documents[0].name != "Hello.class" {
 		t.Fatal("nested class created its own document instead of using the outer class")
 	}
-	if m.selected != 1 || m.source != source || m.editor.Caret() == 0 {
+	wantSource := "public class Hello {\n    static class Nested {}\n}\n"
+	if m.selected != 1 || m.source != wantSource || m.editor.Caret() == 0 {
 		t.Fatalf("nested selection did not locate the declaration in the outer source: selected=%d caret=%d source=%q", m.selected, m.editor.Caret(), m.source)
 	}
 	selection := m.editor.Selection()

@@ -18,9 +18,9 @@ func (m *Model) openFontPicker(target int) {
 }
 
 func (m *Model) fontPickerOptions() []string {
-	options := []string{"Inter", "系统默认"}
+	options := []string{"Inter", m.t("系统默认")}
 	if m.fontPickerTarget == 1 {
-		options = []string{"JetBrains Mono", "系统等宽"}
+		options = []string{"JetBrains Mono", m.t("系统等宽")}
 	}
 	seen := make(map[string]bool, len(options))
 	for _, option := range options {
@@ -37,12 +37,12 @@ func (m *Model) fontPickerOptions() []string {
 
 func (m *Model) paintFontPicker(f *flex.Frame, theme vivaui.Theme) {
 	dialog := f.Dialog(flex.DialogSpec{
-		Title: "选择字体", Width: 520, Height: 500, Layer: 4,
+		Title: m.t("选择字体"), Width: 520, Height: 500, Layer: 4,
 		Scope: fontPickerDialog, DismissID: fontPickerDismiss, CloseID: fontPickerClose, InitialFocusID: fontPickerSearch,
 	})
 	dialog.Body(func() {
 		f.Column().Grow(1).Gap(12).Children(func() {
-			f.Field(&m.fontPickerSearch, fontPickerSearch, "搜索字体", "输入字体名称").FillWidth()
+			f.Field(&m.fontPickerSearch, fontPickerSearch, m.t("搜索字体"), m.t("输入字体名称")).FillWidth()
 			query := strings.ToLower(strings.TrimSpace(m.fontPickerSearch.Text()))
 			f.ScrollArea(fontPickerList).Grow(1).Gap(4).Children(func() {
 				found := false
@@ -70,7 +70,7 @@ func (m *Model) paintFontPicker(f *flex.Frame, theme vivaui.Theme) {
 					}
 				}
 				if !found {
-					f.Text("没有匹配的字体").FontSize(13).Muted().Pad(12)
+					f.Text(m.t("没有匹配的字体")).FontSize(13).Muted().Pad(12)
 				}
 			})
 		})
@@ -85,7 +85,7 @@ func (m *Model) selectFontFamily(family string) {
 		switch family {
 		case "Inter":
 			m.settingsDraft.UIFont = "inter"
-		case "系统默认":
+		case m.t("系统默认"):
 			m.settingsDraft.UIFont = "system"
 		default:
 			m.settingsDraft.UIFont = "family:" + family
@@ -94,7 +94,7 @@ func (m *Model) selectFontFamily(family string) {
 		switch family {
 		case "JetBrains Mono":
 			m.settingsDraft.CodeFont = "jetbrains"
-		case "系统等宽":
+		case m.t("系统等宽"):
 			m.settingsDraft.CodeFont = "system"
 		default:
 			m.settingsDraft.CodeFont = "family:" + family
@@ -109,7 +109,7 @@ func (m *Model) fontDisplayFamily(target int) string {
 		case "inter":
 			return "Inter"
 		case "system":
-			return "系统默认"
+			return m.t("系统默认")
 		default:
 			return strings.TrimPrefix(m.settingsDraft.UIFont, "family:")
 		}
@@ -118,7 +118,7 @@ func (m *Model) fontDisplayFamily(target int) string {
 	case "jetbrains":
 		return "JetBrains Mono"
 	case "system":
-		return "系统等宽"
+		return m.t("系统等宽")
 	default:
 		return strings.TrimPrefix(m.settingsDraft.CodeFont, "family:")
 	}

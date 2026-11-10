@@ -36,6 +36,13 @@ internal/ui ---- internal/workspace
 Packages are introduced when their owning behavior is implemented; empty
 architectural scaffolding is not a goal.
 
+## Localization
+
+`internal/ui` owns the shared Simplified Chinese, English, Japanese, and Korean
+catalog and resolves interface text when painting. `internal/workspace` persists
+only the selected language identifier. Source code, archive contents, and release
+notes are not translated.
+
 ## Execution model
 
 The Viva window thread owns UI state. Long-running archive and decompiler work
@@ -45,10 +52,12 @@ output. Paint never starts a goroutine or blocks on a process.
 
 ## Engine model
 
-The initial engine is built in, not dynamically loaded. An engine request carries
-an immutable artifact reference, options, and a cancellation context. A result
+Engines are built in, not dynamically loaded. An engine request carries an
+immutable artifact reference, options, and a cancellation context. A result
 contains source or a structured failure, diagnostics, engine identity, and engine
 version. The UI never parses engine-specific console text to infer success.
+Vineflower, CFR, and Procyon share the neutral contract; a persistent user setting
+selects subsequent tasks, while existing documents retain their actual provenance.
 
 A future cache key includes the class content digest, engine identity and version,
 and normalized options. Cache correctness takes priority over cache cleverness.

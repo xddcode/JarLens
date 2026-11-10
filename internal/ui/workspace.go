@@ -85,6 +85,11 @@ var (
 	goLineClose                     = tree.ID(workbench, "go-line-close")
 	settingsDialog                  = tree.ID(workbench, "settings-dialog")
 	settingsTheme                   = tree.Sub(workbench, tree.Name("settings-theme"))
+	settingsLanguage                = tree.Sub(workbench, tree.Name("settings-language"))
+	settingsUpdateSource            = tree.Sub(workbench, tree.Name("settings-update-source"))
+	settingsEngine                  = tree.Sub(workbench, tree.Name("settings-engine"))
+	settingsTabWidth                = tree.Sub(workbench, tree.Name("settings-tab-width"))
+	settingsUpdateReleases          = tree.Sub(workbench, tree.Name("settings-update-releases"))
 	settingsNav                     = tree.Sub(workbench, tree.Name("settings-nav"))
 	settingsNavDisclosures          = tree.Sub(workbench, tree.Name("settings-nav-disclosures"))
 	settingsGroupLinks              = tree.Sub(workbench, tree.Name("settings-group-links"))
@@ -97,6 +102,7 @@ var (
 	settingsUIFont                  = tree.Sub(workbench, tree.Name("settings-ui-font"))
 	settingsCodeFont                = tree.Sub(workbench, tree.Name("settings-code-font"))
 	settingsLineNumbers             = tree.ID(workbench, "settings-line-numbers")
+	settingsIndentGuides            = tree.ID(workbench, "settings-indent-guides")
 	settingsCurrentLine             = tree.ID(workbench, "settings-current-line")
 	settingsApply                   = tree.ID(workbench, "settings-apply")
 	settingsJavaPath                = tree.ID(workbench, "settings-java-path")
@@ -109,6 +115,17 @@ var (
 	fontPickerSearch                = tree.ID(workbench, "font-picker-search")
 	fontPickerList                  = tree.ID(workbench, "font-picker-list")
 	settingsRestore                 = tree.ID(workbench, "settings-restore")
+	settingsCheckUpdates            = tree.ID(workbench, "settings-check-updates")
+	settingsUpdateCheck             = tree.ID(workbench, "settings-update-check")
+	settingsUpdateOpen              = tree.ID(workbench, "settings-update-open")
+	settingsUpdateRefresh           = tree.ID(workbench, "settings-update-refresh")
+	settingsUpdateRetry             = tree.ID(workbench, "settings-update-retry")
+	settingsUpdateMore              = tree.ID(workbench, "settings-update-more")
+	updateDialog                    = tree.ID(workbench, "update-dialog")
+	updateDismiss                   = tree.ID(workbench, "update-dismiss")
+	updateClose                     = tree.ID(workbench, "update-close")
+	updateDownload                  = tree.ID(workbench, "update-download")
+	updateNotes                     = tree.ID(workbench, "update-notes")
 	settingsDismiss                 = tree.ID(workbench, "settings-dismiss")
 	settingsClose                   = tree.ID(workbench, "settings-close")
 	settingsCancel                  = tree.ID(workbench, "settings-cancel")
@@ -120,19 +137,24 @@ func NewConfig(m *Model) app.Config {
 	m.tooltip.ShowOnFocus()
 	invalidator := &app.Invalidator{}
 	m.invalidator = invalidator
+	stopSystemAppearance := app.WatchSystemAppearance(invalidator.Invalidate)
 	textFields := flex.Fields(&m.filter, &m.findField, &m.goLineField, &m.settingsJava, &m.settingsFontSize, &m.settingsSearch, &m.fontPickerSearch)
 	config := app.Config{
 		Tree: &tree, Title: "JarLens", Width: 1200, Height: 760,
 		MinWidth: 900, MinHeight: 600,
 		WindowMode: app.WindowCustomTitlebar, TitlebarHeight: 40,
 		ClearColor:  app.Color{Red: 38.0 / 255, Green: 40.0 / 255, Blue: 44.0 / 255, Alpha: 1},
-		Invalidator: invalidator, OnWake: m.wake, OnClosed: m.close,
+		Invalidator: invalidator, OnWake: m.wake,
+		OnClosed: func() {
+			stopSystemAppearance()
+			m.close()
+		},
 		WindowControls: func() app.WindowControlsStyle {
 			theme := WorkspaceTheme(m.Theme)
 			return app.WindowControlsStyle{
 				Foreground: theme.Foreground, Hover: theme.Hover, Pressed: theme.Muted,
 				Close: vivaui.RGB24(0xc42b1c), CloseForeground: vivaui.RGB24(0xffffff),
-				Minimize: "最小化", Maximize: "最大化", Restore: "还原", CloseName: "关闭",
+				Minimize: m.t("最小化"), Maximize: m.t("最大化"), Restore: m.t("还原"), CloseName: m.t("关闭"),
 			}
 		},
 		TextInput: func(context app.TextInputContext) *app.TextInput {
@@ -200,6 +222,16 @@ func NewConfig(m *Model) app.Config {
 			case "w":
 				m.closeActiveDocument()
 				return vivaui.EventResult{Handled: true}
+			case "a":
+				if m.paneForSource(event.Target) != nil && m.selectAllSource() {
+					return vivaui.EventResult{Handled: true, Repaint: true}
+				}
+				return vivaui.EventResult{}
+			case "c":
+				if m.paneForSource(event.Target) != nil && m.copySource() {
+					return vivaui.EventResult{Handled: true, Repaint: true}
+				}
+				return vivaui.EventResult{}
 			default:
 				return vivaui.EventResult{}
 			}
@@ -211,6 +243,15 @@ func NewConfig(m *Model) app.Config {
 			m.tooltip.Dismiss()
 			if m.settingsThemeSelect.Open {
 				return m.settingsThemeSelect.Key(event)
+			}
+			if m.settingsLanguageSelect.Open {
+				return m.settingsLanguageSelect.Key(event)
+			}
+			if m.settingsUpdateSourceSelect.Open {
+				return m.settingsUpdateSourceSelect.Key(event)
+			}
+			if m.settingsEngineSelect.Open {
+				return m.settingsEngineSelect.Key(event)
 			}
 			if m.settingsOpen && event.Target == settingsSearch {
 				if event.Key == vivaui.KeyEscape && m.settingsSearch.Text() != "" {
@@ -303,6 +344,9 @@ func NewConfig(m *Model) app.Config {
 				if result, handled := m.sourceLinkPointer(event); handled {
 					return result
 				}
+				if result, handled := m.sourceSelectionPointer(event, pane); handled {
+					return result
+				}
 				return m.code.Pointer(event)
 			}
 			if pane != nil {
@@ -314,6 +358,15 @@ func NewConfig(m *Model) app.Config {
 			m.tooltip.Dismiss()
 			if m.settingsThemeSelect.Open {
 				return m.settingsThemeSelect.Wheel(event)
+			}
+			if m.settingsLanguageSelect.Open {
+				return m.settingsLanguageSelect.Wheel(event)
+			}
+			if m.settingsUpdateSourceSelect.Open {
+				return m.settingsUpdateSourceSelect.Wheel(event)
+			}
+			if m.settingsEngineSelect.Open {
+				return m.settingsEngineSelect.Wheel(event)
 			}
 			if m.mainMenuOpen && m.projectMenuScroll.Wheel(event) {
 				return vivaui.EventResult{Handled: true, Repaint: true}
@@ -365,15 +418,15 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 	bounds := vivaui.Rect{Width: size.Width, Height: size.Height}
 	canvas.Fill(bounds, theme.Card)
 
-	themeLabel := "使用浅色主题"
+	themeLabel := m.t("使用浅色主题")
 	themeGlyph := sunGlyph
 	if m.Theme == AppearanceLight {
-		themeLabel = "使用深色主题"
+		themeLabel = m.t("使用深色主题")
 		themeGlyph = moonGlyph
 	}
 	status := m.status
 	if status == "" {
-		status = "就绪"
+		status = m.t("就绪")
 	}
 	leading, trailing := app.TitlebarInsets()
 	m.updateFind()
@@ -411,7 +464,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 					} else {
 						mainMenuTitleBox = f.Row().Height(30).MaxWidth(340).PadSides(0, 8, 0, 0).Gap(6).Items(flex.Center).Radius(8).
 							Hover(flex.Look{}.Background(theme.Hover)).
-							HitWith(mainMenuTitle, title, vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "归档菜单", Expanded: m.mainMenuOpen && m.mainMenuFromTitle, Cursor: vivaui.PointerCursorHand})
+							HitWith(mainMenuTitle, title, vivaui.HitOptions{Role: vivaui.RoleButton, Hint: m.t("归档菜单"), Expanded: m.mainMenuOpen && m.mainMenuFromTitle, Cursor: vivaui.PointerCursorHand})
 						if m.mainMenuOpen && m.mainMenuFromTitle {
 							mainMenuTitleBox = mainMenuTitleBox.Background(theme.Hover)
 						}
@@ -435,27 +488,30 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 					}
 				})
 				f.Row().Gap(4).Items(flex.Center).Children(func() {
-					if iconButton(f, archiveOpen, "打开 JAR 或 Class 文件", openGlyph, theme, true) {
+					if iconButton(f, archiveOpen, m.t("打开 JAR 或 Class 文件"), openGlyph, theme, true) {
 						canvas.AfterPaint(m.chooseArchive)
 					}
-					if iconButton(f, archiveSave, "导出反编译源码", saveGlyph, theme, m.source != "") {
+					if iconButton(f, archiveSave, m.t("导出反编译源码"), saveGlyph, theme, m.source != "") {
 						canvas.AfterPaint(m.saveSource)
 					}
-					if m.busy && iconButton(f, workCancel, "取消当前操作", cancelGlyph, theme, true) {
+					if m.busy && iconButton(f, workCancel, m.t("取消当前操作"), cancelGlyph, theme, true) {
 						m.cancelWork()
 					}
-					if iconButton(f, settingsButton, "设置 (Ctrl+Alt+S)", settingsGlyphForAppearance(m.Theme), theme, true) {
+					if iconButton(f, settingsButton, m.t("设置 (Ctrl+Alt+S)"), settingsGlyphForAppearance(m.Theme), theme, true) {
 						m.openSettings()
 					}
-					if iconButton(f, githubOpen, "打开 GitHub 仓库", githubGlyph, theme, true) {
+					if iconButton(f, githubOpen, m.t("打开 GitHub 仓库"), githubGlyph, theme, true) {
 						canvas.AfterPaint(m.openRepository)
 					}
 					if iconButton(f, themeToggle, themeLabel, themeGlyph, theme, true) {
+						nativeAppearance := app.AppearanceDark
 						if m.Theme == AppearanceDark {
 							m.Theme = AppearanceLight
+							nativeAppearance = app.AppearanceLight
 						} else {
 							m.Theme = AppearanceDark
 						}
+						app.SetNativeAppearance(nativeAppearance)
 					}
 				})
 			})
@@ -467,24 +523,24 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 					f.Column().Width(m.split.Pos).MarginSides(6, 0, 6, 0).Radius(10).Background(theme.Background).Children(func() {
 						f.Row().Height(40).PadX(8).Gap(8).Items(flex.Center).Justify(flex.Between).Children(func() {
 							projectTitleBox = f.Row().Height(24).PadX(4).Gap(4).Items(flex.Center).Radius(4).Hover(flex.Look{}.Background(theme.Hover)).
-								HitWith(projectTitle, "项目", vivaui.HitOptions{Role: vivaui.RoleButton, Hint: "项目视图", Expanded: m.projectMenuOpen, Cursor: vivaui.PointerCursorHand})
+								HitWith(projectTitle, m.t("项目"), vivaui.HitOptions{Role: vivaui.RoleButton, Hint: m.t("项目视图"), Expanded: m.projectMenuOpen, Cursor: vivaui.PointerCursorHand})
 							if m.projectMenuOpen {
 								projectTitleBox = projectTitleBox.Background(theme.Hover)
 							}
 							projectTitleBox.Children(func() {
-								f.Text("项目").FontSize(13).Color(theme.AccentForeground)
+								f.Text(m.t("项目")).FontSize(13).Color(theme.AccentForeground)
 								f.Icon(chevronDownGlyph).Size(12, 12).Color(theme.MutedForeground)
 							})
 							if projectTitleBox.Clicked() {
 								m.projectMenuOpen = !m.projectMenuOpen
 							}
-							if tinyIconButton(f, projectSearch, "显示筛选", searchGlyph, theme, true) {
+							if tinyIconButton(f, projectSearch, m.t("显示筛选"), searchGlyph, theme, true) {
 								m.filterOpen = !m.filterOpen
 							}
 						})
 						if m.filterOpen {
 							f.Row().Height(34).PadSides(0, 8, 6, 8).Items(flex.Center).Children(func() {
-								f.Field(&m.filter, projectFilter, "筛选类和资源", "筛选").Grow(1)
+								f.Field(&m.filter, projectFilter, m.t("筛选类和资源"), m.t("筛选")).Grow(1)
 							})
 						}
 						f.Divider()
@@ -498,7 +554,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 			}
 			f.Row().Height(34).PadSides(0, 10, 0, 12).Items(flex.Center).Justify(flex.Between).Children(func() {
 				f.Text(status).FontSize(13).Muted().Ellipsis()
-				f.Text("本地工作区").FontSize(13).Muted()
+				f.Text(m.t("本地工作区")).FontSize(13).Muted()
 			})
 			if m.goLineOpen {
 				m.paintGoLineDialog(f, theme)
@@ -509,8 +565,12 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 			if m.fontPickerOpen {
 				m.paintFontPicker(f, theme)
 			}
+			if m.updateDialogOpen {
+				m.paintUpdateDialog(f, theme)
+			}
 		})
 	})
+	m.paintSettingsSelectDismissBackdrop(canvas, bounds)
 	if m.workspace != nil && !m.homeVisible {
 		if rect := splitterSlot.Rect(); rect.Width > 0 {
 			canvas.Fill(rect, theme.Card)
@@ -526,7 +586,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 	if treeContentWidth > m.split.Pos && m.workspace != nil && !m.homeVisible {
 		rect := projectTreeBox.Rect()
 		area := components.BeginScrollArea(canvas, theme, rect, vivaui.Size{Width: treeContentWidth, Height: rect.Height}).
-			Offset(treeScrollX, 0).HorizontalScrollbar(projectHorizontalScrollbar, "横向滚动项目树", "")
+			Offset(treeScrollX, 0).HorizontalScrollbar(projectHorizontalScrollbar, m.t("横向滚动项目树"), "")
 		m.treeScrollGeometry = area.EndContent()
 	}
 	if m.tabsMenuOpen && m.tabsMenuPane != nil && len(paneDocuments(m, m.tabsMenuPane)) > 0 {
@@ -583,7 +643,7 @@ func treeExpandedSignature(tree *archive.Tree, expanded map[int]bool) uint64 {
 func (m *Model) paintProjectTree(f *flex.Frame, theme vivaui.Theme, contentWidth, scrollX float32) flex.Box {
 	if m.workspace == nil {
 		f.Column().Pad(12).Children(func() {
-			f.Text("尚未打开归档").FontSize(13).Muted()
+			f.Text(m.t("尚未打开归档")).FontSize(13).Muted()
 		})
 		return flex.Box{}
 	}
@@ -593,7 +653,7 @@ func (m *Model) paintProjectTree(f *flex.Frame, theme vivaui.Theme, contentWidth
 		visible = m.workspace.Tree.VisibleQuery(query)
 		if len(visible) == 0 {
 			f.Column().Pad(12).Children(func() {
-				f.Text("没有匹配的类或资源").FontSize(13).Muted()
+				f.Text(m.t("没有匹配的类或资源")).FontSize(13).Muted()
 			})
 			return flex.Box{}
 		}
@@ -659,7 +719,7 @@ func (m *Model) paintNodeDisclosure(f *flex.Frame, node archive.Node, theme viva
 	if m.expanded[node.ID] {
 		glyph = chevronDownGlyph
 	}
-	button := f.Row().Size(16, 24).Center().HitWith(projectDisclosures.At(node.ID), "展开或折叠 "+node.Name, vivaui.HitOptions{
+	button := f.Row().Size(16, 24).Center().HitWith(projectDisclosures.At(node.ID), m.tf("展开或折叠 %s", node.Name), vivaui.HitOptions{
 		Role: vivaui.RoleButton, Expanded: m.expanded[node.ID], Expandable: true, Cursor: vivaui.PointerCursorHand,
 	})
 	button.Children(func() {
@@ -726,10 +786,10 @@ func (m *Model) paintEditorTabMenu(canvas *vivaui.Canvas, theme vivaui.Theme, vi
 	documents := m.documents
 	active := m.active
 	items := []components.ContextMenuItem{
-		{ID: editorTabsCloseAll, Label: "关闭全部标签页"},
-		{ID: editorTabsCloseOthers, Label: "关闭其他标签页", Disabled: len(documents) < 2},
-		{ID: editorTabsCloseLeft, Label: "关闭左侧标签页", Disabled: active <= 0},
-		{ID: editorTabsCloseRight, Label: "关闭右侧标签页", Disabled: active < 0 || active >= len(documents)-1},
+		{ID: editorTabsCloseAll, Label: m.t("关闭全部标签页")},
+		{ID: editorTabsCloseOthers, Label: m.t("关闭其他标签页"), Disabled: len(documents) < 2},
+		{ID: editorTabsCloseLeft, Label: m.t("关闭左侧标签页"), Disabled: active <= 0},
+		{ID: editorTabsCloseRight, Label: m.t("关闭右侧标签页"), Disabled: active < 0 || active >= len(documents)-1},
 	}
 	width := float32(180)
 	for _, item := range items {
@@ -782,13 +842,13 @@ func (m *Model) paintTabContextMenu(canvas *vivaui.Canvas, theme vivaui.Theme, v
 	const rowHeight = float32(24)
 	menuTheme := contextMenuTheme(theme, m.Theme)
 	items := []components.ContextMenuItem{
-		{ID: editorTabCloseCurrent, Label: "关闭", Shortcut: "Ctrl+W"},
-		{ID: editorTabsCloseOthers, Label: "关闭其他标签页", Disabled: len(documents) < 2},
-		{ID: editorTabsCloseAll, Label: "关闭全部标签页"},
-		{ID: editorTabsCloseLeft, Label: "关闭左侧标签页", Disabled: m.tabsContextTab <= 0},
-		{ID: editorTabsCloseRight, Label: "关闭右侧标签页", Disabled: m.tabsContextTab >= len(documents)-1},
-		{ID: editorTabSplitRight, Label: "向右拆分", Icon: splitRightGlyph, Disabled: documents[m.tabsContextTab].source == ""},
-		{ID: editorTabSplitDown, Label: "向下拆分", Icon: splitDownGlyph, Disabled: documents[m.tabsContextTab].source == ""},
+		{ID: editorTabCloseCurrent, Label: m.t("关闭"), Shortcut: "Ctrl+W"},
+		{ID: editorTabsCloseOthers, Label: m.t("关闭其他标签页"), Disabled: len(documents) < 2},
+		{ID: editorTabsCloseAll, Label: m.t("关闭全部标签页")},
+		{ID: editorTabsCloseLeft, Label: m.t("关闭左侧标签页"), Disabled: m.tabsContextTab <= 0},
+		{ID: editorTabsCloseRight, Label: m.t("关闭右侧标签页"), Disabled: m.tabsContextTab >= len(documents)-1},
+		{ID: editorTabSplitRight, Label: m.t("向右拆分"), Icon: splitRightGlyph, Disabled: documents[m.tabsContextTab].source == ""},
+		{ID: editorTabSplitDown, Label: m.t("向下拆分"), Icon: splitDownGlyph, Disabled: documents[m.tabsContextTab].source == ""},
 	}
 	width := float32(220)
 	for _, item := range items {
@@ -839,9 +899,9 @@ func (m *Model) paintTabContextMenu(canvas *vivaui.Canvas, theme vivaui.Theme, v
 func (m *Model) paintProjectMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewport, anchor vivaui.Rect) {
 	menuTheme := contextMenuTheme(theme, m.Theme)
 	items := []components.ContextMenuItem{
-		{ID: projectExpandAll, Label: "展开全部", Disabled: m.workspace == nil},
-		{ID: projectCollapseAll, Label: "折叠全部", Disabled: m.workspace == nil},
-		{ID: projectFilterMenu, Label: "筛选类和资源"},
+		{ID: projectExpandAll, Label: m.t("展开全部"), Disabled: m.workspace == nil},
+		{ID: projectCollapseAll, Label: m.t("折叠全部"), Disabled: m.workspace == nil},
+		{ID: projectFilterMenu, Label: m.t("筛选类和资源")},
 	}
 	size := vivaui.Size{Width: 180, Height: float32(len(items))*24 + 12}
 	content, _ := components.PlaceOverlay(anchor, size, viewport, components.OverlayPlacement{
@@ -906,17 +966,17 @@ func (m *Model) paintProjectSwitcher(canvas *vivaui.Canvas, theme vivaui.Theme, 
 		Layer: 4, Scope: projectSwitcher, DismissID: projectSwitcherDismiss, Viewport: viewport, RowHeight: 24, Scroll: &m.projectMenuScroll,
 	})
 	menu.BeginContent()
-	menu.AddItem(components.ContextMenuItem{ID: mainMenuOpenFile, Label: "打开...", Shortcut: "Ctrl+O", Icon: openGlyph})
+	menu.AddItem(components.ContextMenuItem{ID: mainMenuOpenFile, Label: m.t("打开..."), Shortcut: "Ctrl+O", Icon: openGlyph})
 	menu.AddSeparator()
 	menu.AddItem(components.ContextMenuItem{ID: projectSwitcherHome, Label: "JarLens Home", Icon: homeGlyph})
 	menu.AddSeparator()
 	if currentPath != "" {
-		menu.AddLabel("当前项目", false)
+		menu.AddLabel(m.t("当前项目"), false)
 		item := components.ContextMenuItem{ID: mainMenuCurrentProject, Label: filepath.Base(currentPath), Description: currentPath, Inset: true}
 		paintProjectBadge(canvas, menu.AddItem(item), currentPath)
 	}
 	if len(recent) > 0 {
-		menu.AddLabel("最近的项目", false)
+		menu.AddLabel(m.t("最近的项目"), false)
 		for index, path := range recent {
 			item := components.ContextMenuItem{ID: recentProjects.At(index), Label: filepath.Base(path), Description: path, Inset: true}
 			paintProjectBadge(canvas, menu.AddItem(item), path)

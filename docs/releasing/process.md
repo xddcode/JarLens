@@ -55,6 +55,18 @@ commit notes under that full tag version. The workflow validates the numeric bas
 uses the full tag version for notes and artifact names, and marks the GitHub
 Release as a prerelease instead of latest stable.
 
+## CNB mirror
+
+The `Mirror to CNB` workflow pushes `main` and tags to `xddcode/JarLens` on CNB.
+After a GitHub Release is published or edited, a separate job uses the pinned
+`mpgrm` Linux amd64 release to synchronize its metadata, notes, and assets. The
+workflow verifies the tool archive with SHA-256 before running it.
+
+Configure `CNB_USERNAME` and `CNB_TOKEN` in GitHub Actions secrets. The token needs
+repository write access and Release read/write access on CNB. Release
+synchronization runs on GitHub's Ubuntu runners; the Linux synchronization binary
+is not a local Windows development dependency.
+
 ## Signing and provenance
 
 Unsigned builds must be labelled honestly. macOS signing/notarization and Windows

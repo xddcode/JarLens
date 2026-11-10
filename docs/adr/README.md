@@ -11,3 +11,4 @@ with a new ADR rather than rewriting the old outcome.
 | [0003](0003-github-driven-delivery.md) | Use GitHub-only, AI-assisted, repository-driven delivery | Accepted |
 | [0004](0004-openidea-islands-design.md) | Adopt the OpenIDEA Islands workbench and theme direction | Accepted |
 | [0005](0005-runtime-distribution.md) | Ship standard and portable runtime distributions | Accepted |
+| [0006](0006-selectable-decompiler-engines.md) | Offer selectable built-in decompiler engines | Accepted |
