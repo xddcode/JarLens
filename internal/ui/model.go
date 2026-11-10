@@ -214,6 +214,7 @@ type Model struct {
 	selectingSource     bool
 
 	invalidator           *app.Invalidator
+	stopSystemAppearance  func()
 	nativeAppearance      app.Appearance
 	nativeAppearanceDirty bool
 	mu                    sync.Mutex
@@ -717,6 +718,10 @@ func (m *Model) openRepository() {
 }
 
 func (m *Model) close() {
+	if m.stopSystemAppearance != nil {
+		m.stopSystemAppearance()
+		m.stopSystemAppearance = nil
+	}
 	m.stopCurrent()
 	if m.updateCancel != nil {
 		m.updateCancel()

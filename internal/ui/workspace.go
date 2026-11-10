@@ -138,7 +138,6 @@ func NewConfig(m *Model) app.Config {
 	m.tooltip.ShowOnFocus()
 	invalidator := &app.Invalidator{}
 	m.invalidator = invalidator
-	stopSystemAppearance := app.WatchSystemAppearance(invalidator.Invalidate)
 	textFields := flex.Fields(&m.filter, &m.findField, &m.goLineField, &m.settingsJava, &m.settingsFontSize, &m.settingsSearch, &m.fontPickerSearch)
 	config := app.Config{
 		Tree: &tree, Title: "JarLens", Width: 1200, Height: 760,
@@ -150,10 +149,7 @@ func NewConfig(m *Model) app.Config {
 			m.SyncNativeAppearance()
 			m.wake()
 		},
-		OnClosed: func() {
-			stopSystemAppearance()
-			m.close()
-		},
+		OnClosed: m.close,
 		WindowControls: func() app.WindowControlsStyle {
 			theme := WorkspaceTheme(m.Theme)
 			return app.WindowControlsStyle{

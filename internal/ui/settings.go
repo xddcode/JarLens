@@ -110,7 +110,7 @@ func (m *Model) applyThemePreference(preference string) {
 		nativeAppearance = app.AppearanceLight
 	case "system":
 		nativeAppearance = app.AppearanceUnknown
-		if app.SystemAppearance() == app.AppearanceLight {
+		if m.stopSystemAppearance != nil && app.SystemAppearance() == app.AppearanceLight {
 			m.Theme = AppearanceLight
 		}
 	}
@@ -119,6 +119,12 @@ func (m *Model) applyThemePreference(preference string) {
 }
 
 func (m *Model) SyncNativeAppearance() {
+	if m.stopSystemAppearance == nil && m.invalidator != nil {
+		m.stopSystemAppearance = app.WatchSystemAppearance(m.invalidator.Invalidate)
+	}
+	if m.settings.Theme == "system" {
+		m.applyThemePreference("system")
+	}
 	if !m.nativeAppearanceDirty {
 		return
 	}
