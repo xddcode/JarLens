@@ -387,6 +387,15 @@ func TestSettingsJavaBrowse(t *testing.T) {
 	defer driver.Close()
 	openSettingsForTest(t, driver)
 	click(t, driver, settingsNav.At(5))
+	fieldVisible := false
+	for _, hit := range driver.Snapshot().Hits {
+		if hit.ID == settingsJavaPath && hit.Bounds.Width > 0 {
+			fieldVisible = true
+		}
+	}
+	if !fieldVisible {
+		t.Fatal("Java executable field is not visible beside the browse button")
+	}
 	java, err := os.Executable()
 	if err != nil {
 		t.Fatal(err)
