@@ -9,7 +9,15 @@
 
 A modern, GPU-native Java decompiler and code explorer built with Go and [Viva](https://github.com/vivaui/viva).
 
-> JarLens is under active development and has not published a release. The current source can open JAR/Class files, browse their structure, decompile classes with the embedded Vineflower engine, and export Java source.
+> JarLens is under active development, with [public preview releases](https://github.com/xddcode/JarLens/releases) available. The current source can open JAR/Class files, browse their structure, decompile classes with built-in Vineflower, CFR, or Procyon engines, and export Java source.
+
+## Usage and Legal Notice
+
+JarLens is provided solely for interoperability analysis, debugging, education, and lawful security research. It is not affiliated with, authorized by, or endorsed by the authors or copyright holders of any software analyzed with it.
+
+JarLens does not provide, assist with, or endorse cracking, key generation, activation bypass, license circumvention, or distribution of pirated software. Do not use JarLens for these purposes.
+
+Users are responsible for ensuring they have the legal right to inspect the relevant artifacts and for complying with copyright law, software licenses, and applicable regulations. Decompiled output may remain subject to the original software's copyright and license. Do not copy, modify, or redistribute it without the necessary rights or permission.
 
 ## Why JarLens?
 
