@@ -717,7 +717,7 @@ func (m *Model) paintSystemSettings(f *flex.Frame, theme vivaui.Theme) {
 	})
 	settingsGroup(f, theme, m.t("Java 运行环境"), func() {
 		m.settingsRow(f, theme, "可执行文件", func() {
-			f.Row().Gap(8).Items(flex.Center).Children(func() {
+			f.Row().Width(460).Gap(8).Items(flex.Center).Children(func() {
 				f.Field(&m.settingsJava, settingsJavaPath, m.t("Java 可执行文件"), m.t("自动检测 PATH 或内置 JRE")).Grow(1).MaxWidth(360)
 				if f.Button(settingsJavaBrowse, m.t("浏览...")).Outline().Small().Clicked() {
 					f.Canvas().AfterPaint(m.chooseSettingsJava)
