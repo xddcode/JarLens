@@ -6,6 +6,12 @@ All notable changes to JarLens are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-beta.2] - 2026-11-10
+
+### Added
+
+- Portable installer downloads for Windows (`setup.exe`), macOS (`dmg`), and Linux (`deb`), alongside the existing archives and bundled-JRE standard packages.
+
 ## [0.1.0-beta.1] - 2026-11-09
 
 ### Added

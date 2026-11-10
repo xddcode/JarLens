@@ -63,18 +63,22 @@ jobs:
           - { variant: standard, os: macos-15, target: darwin, arch: arm64, format: zip }
           - { variant: standard, os: ubuntu-24.04, target: linux, arch: amd64, format: tar.gz }
           - { variant: standard, os: ubuntu-24.04, target: linux, arch: arm64, format: tar.gz }
-          - { variant: portable, os: windows-latest, target: windows, arch: amd64, format: zip }
-          - { variant: portable, os: windows-latest, target: windows, arch: arm64, format: zip }
-          - { variant: portable, os: macos-15, target: darwin, arch: amd64, format: zip }
-          - { variant: portable, os: macos-15, target: darwin, arch: arm64, format: zip }
-          - { variant: portable, os: ubuntu-24.04, target: linux, arch: amd64, format: tar.gz }
-          - { variant: portable, os: ubuntu-24.04, target: linux, arch: arm64, format: tar.gz }
+          - { variant: portable, os: windows-latest, target: windows, arch: amd64, format: "zip,nsis" }
+          - { variant: portable, os: windows-latest, target: windows, arch: arm64, format: "zip,nsis" }
+          - { variant: portable, os: macos-15, target: darwin, arch: amd64, format: "zip,dmg" }
+          - { variant: portable, os: macos-15, target: darwin, arch: arm64, format: "zip,dmg" }
+          - { variant: portable, os: ubuntu-24.04, target: linux, arch: amd64, format: "tar.gz,deb" }
+          - { variant: portable, os: ubuntu-24.04, target: linux, arch: arm64, format: "tar.gz,deb" }
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+      - name: Install NSIS for the portable Windows installer
+        if: matrix.variant == 'portable' && matrix.target == 'windows'
+        shell: bash
+        run: choco install nsis --no-progress -y
       - name: Test before packaging
         run: go test ./... -count=1
       - name: Package without claiming a signature
@@ -87,21 +91,32 @@ jobs:
           go tool viva package --target "${{ matrix.target }}" --arch "${{ matrix.arch }}" \
             --format "${{ matrix.format }}" --no-sign --out "$package_out"
           version=${GITHUB_REF_NAME#v}
-          src=$(find "$RUNNER_TEMP/package" -maxdepth 1 -type f)
-          if [ -z "$src" ] || [ "$(printf '%s\n' "$src" | wc -l)" -ne 1 ]; then
-            echo "::error::expected exactly one package, found: $src"
-            exit 1
-          fi
-          case "$src" in
-            *.tar.gz) extension=tar.gz ;;
-            *) extension=${src##*.} ;;
-          esac
-          mkdir -p "$RUNNER_TEMP/upload"
           suffix=""
           if [ "${{ matrix.variant }}" = "portable" ]; then suffix="-portable"; fi
-          destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}$suffix.$extension"
-          mv "$src" "$destination"
-          echo "destination=$destination" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/upload"
+          src=$(find "$RUNNER_TEMP/package" -maxdepth 1 -type f | sort)
+          if [ -z "$src" ]; then
+            echo "::error::no packages were produced"
+            exit 1
+          fi
+          printf '%s\n' "$src" | while read -r source; do
+            case "$source" in
+              *.deb)
+                destination="$RUNNER_TEMP/upload/jarlens$suffix}_${version}_${{ matrix.arch }}.deb"
+                ;;
+              *-setup.exe)
+                destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}$suffix-setup.exe"
+                ;;
+              *.tar.gz)
+                destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}$suffix.tar.gz"
+                ;;
+              *)
+                destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}$suffix.${source##*.}"
+                ;;
+            esac
+            mv "$source" "$destination"
+            echo "destination=$destination" >> "$GITHUB_ENV"
+          done
       - name: Bundle the managed JRE for the standard variant
         if: matrix.variant == 'standard'
         shell: bash
