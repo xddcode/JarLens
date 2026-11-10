@@ -6,6 +6,10 @@ All notable changes to JarLens are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Selectable built-in Vineflower 1.12.0, CFR 0.152, and Procyon 0.6.0 decompiler engines with persistent settings and accurate source provenance.
+
 ## [0.1.0-beta.2] - 2026-11-10
 
 ### Added

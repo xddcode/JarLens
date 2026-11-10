@@ -85,6 +85,7 @@ var (
 	goLineClose                     = tree.ID(workbench, "go-line-close")
 	settingsDialog                  = tree.ID(workbench, "settings-dialog")
 	settingsTheme                   = tree.Sub(workbench, tree.Name("settings-theme"))
+	settingsEngine                  = tree.Sub(workbench, tree.Name("settings-engine"))
 	settingsNav                     = tree.Sub(workbench, tree.Name("settings-nav"))
 	settingsNavDisclosures          = tree.Sub(workbench, tree.Name("settings-nav-disclosures"))
 	settingsGroupLinks              = tree.Sub(workbench, tree.Name("settings-group-links"))
@@ -212,6 +213,9 @@ func NewConfig(m *Model) app.Config {
 			if m.settingsThemeSelect.Open {
 				return m.settingsThemeSelect.Key(event)
 			}
+			if m.settingsEngineSelect.Open {
+				return m.settingsEngineSelect.Key(event)
+			}
 			if m.settingsOpen && event.Target == settingsSearch {
 				if event.Key == vivaui.KeyEscape && m.settingsSearch.Text() != "" {
 					m.settingsSearch.SetText("")
@@ -314,6 +318,9 @@ func NewConfig(m *Model) app.Config {
 			m.tooltip.Dismiss()
 			if m.settingsThemeSelect.Open {
 				return m.settingsThemeSelect.Wheel(event)
+			}
+			if m.settingsEngineSelect.Open {
+				return m.settingsEngineSelect.Wheel(event)
 			}
 			if m.mainMenuOpen && m.projectMenuScroll.Wheel(event) {
 				return vivaui.EventResult{Handled: true, Repaint: true}

@@ -134,6 +134,30 @@ func TestSettingsApplyOnlyWhenDirty(t *testing.T) {
 	}
 }
 
+func TestSettingsSelectAndPersistDecompilerEngine(t *testing.T) {
+	store := &memorySettingsStore{settings: jarlensworkspace.DefaultSettings()}
+	m := &Model{SettingsStore: store}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	openSettingsForTest(t, driver)
+	click(t, driver, settingsNav.At(5))
+	click(t, driver, settingsEngine.At(3))
+	click(t, driver, settingsEngine.At(1))
+	click(t, driver, settingsApply)
+	if store.saves != 1 || m.settings.Engine != "cfr" || m.engine.Name() != "CFR" {
+		t.Fatalf("CFR was not selected and persisted: %+v", m.settings)
+	}
+
+	openSettingsForTest(t, driver)
+	click(t, driver, settingsNav.At(5))
+	click(t, driver, settingsEngine.At(3))
+	click(t, driver, settingsEngine.At(2))
+	click(t, driver, settingsCancel)
+	if m.settings.Engine != "cfr" || m.engine.Name() != "CFR" {
+		t.Fatal("Cancel changed the applied decompiler engine")
+	}
+}
+
 func TestSettingsThemeSelectRemainsVisibleDuringEntrance(t *testing.T) {
 	m := &Model{}
 	driver := newDriver(t, m)
