@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -50,13 +51,20 @@ type Installer interface {
 	Launch(StagedUpdate) error
 }
 
-func newUpdateClient() (*vivaupdate.Client, error) {
+func InstallFeedForSource(source Source, version string) string {
+	if ParseSource(string(source)) == SourceCNB {
+		return CNBReleases + "/download/v" + url.PathEscape(version) + "/cnb-latest.json"
+	}
+	return InstallFeed
+}
+
+func newUpdateClient(feedURL string) (*vivaupdate.Client, error) {
 	key, err := vivaupdate.ParsePublicKey(releasePublicKeyText)
 	if err != nil {
 		return nil, err
 	}
 	return vivaupdate.New(vivaupdate.Config{
-		FeedURL: InstallFeed, PublicKeys: []ed25519.PublicKey{key},
+		FeedURL: feedURL, PublicKeys: []ed25519.PublicKey{key},
 		App: "io.github.xddcode.jarlens", Channel: "stable", Current: Current,
 	})
 }
@@ -70,8 +78,8 @@ func VerifyReleaseFeed(manifest, signatureText []byte) bool {
 	return err == nil && ed25519.Verify(key, manifest, signature)
 }
 
-func ResolveDownload(ctx context.Context, version string) (*Download, error) {
-	client, err := newUpdateClient()
+func ResolveDownload(ctx context.Context, source Source, version string) (*Download, error) {
+	client, err := newUpdateClient(InstallFeedForSource(source, version))
 	if err != nil {
 		return nil, err
 	}

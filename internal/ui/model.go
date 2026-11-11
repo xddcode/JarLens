@@ -113,7 +113,7 @@ type Model struct {
 	RestoreWindow          func()
 	UpdateChecker          func(context.Context, jarlensupdate.Source) (jarlensupdate.Release, error)
 	UpdateReleasesLoader   func(context.Context, jarlensupdate.Source, int, int) (jarlensupdate.ReleasePage, error)
-	UpdateDownloadResolver func(context.Context, string) (*jarlensupdate.Download, error)
+	UpdateDownloadResolver func(context.Context, jarlensupdate.Source, string) (*jarlensupdate.Download, error)
 	UpdateInstaller        jarlensupdate.Installer
 	SetLaunchAtLogin       func(bool) error
 

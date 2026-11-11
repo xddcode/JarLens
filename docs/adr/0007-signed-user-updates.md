@@ -1,6 +1,6 @@
 # ADR 0007: Sign and limit in-place updates
 
-- Status: Accepted
+- Status: Superseded by ADR 0008
 - Date: 2026-11-11
 
 ## Context

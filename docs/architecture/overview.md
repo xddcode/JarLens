@@ -54,12 +54,14 @@ output. Paint never starts a goroutine or blocks on a process.
 
 `internal/update` separates release discovery from signed-package installation.
 The UI resolves a Viva Ed25519-signed feed on a background task and renders
-Markdown notes. Only a registered, writable per-user Windows installation can
-start a download. Progress and cancellation cross into the model through the
-invalidator; Viva verifies the package length and SHA-256 again before its helper
-runs the NSIS installer after the application quits. Other installation types
-retain manual downloads. The release workflow signs the feed but never exposes
-its private key to the application repository.
+Markdown notes. GitHub and CNB use the same signature key, but each has its own
+feed and asset URLs so the selected source carries release discovery, download,
+and verification without silently switching hosts. Only a registered, writable
+per-user Windows installation can start a download. Progress and cancellation
+cross into the model through the invalidator; Viva verifies the package length
+and SHA-256 again before its helper runs the NSIS installer after the application
+quits. Other installation types retain manual downloads. The release workflow
+signs both feeds but never exposes its private key to the application repository.
 
 ## Engine model
 

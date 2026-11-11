@@ -12,4 +12,5 @@ with a new ADR rather than rewriting the old outcome.
 | [0004](0004-openidea-islands-design.md) | Adopt the OpenIDEA Islands workbench and theme direction | Accepted |
 | [0005](0005-runtime-distribution.md) | Ship standard and portable runtime distributions | Accepted |
 | [0006](0006-selectable-decompiler-engines.md) | Offer selectable built-in decompiler engines | Accepted |
-| [0007](0007-signed-user-updates.md) | Sign and limit in-place updates | Accepted |
+| [0007](0007-signed-user-updates.md) | Sign and limit in-place updates | Superseded by 0008 |
+| [0008](0008-cnb-update-source.md) | Support signed updates through GitHub and CNB | Accepted |

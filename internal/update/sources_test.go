@@ -39,7 +39,7 @@ func TestCNBReleaseHistoryFromPublicPage(t *testing.T) {
 		if r.URL.Query().Get("page") != "1" || r.URL.Query().Get("page_size") != "5" {
 			t.Errorf("unexpected pagination: %s", r.URL.RawQuery)
 		}
-		fmt.Fprint(w, `<html><head><script id="__NEXT_DATA__" type="application/json" nonce="test">{"props":{"pageProps":{"initialState":{"slug":{"repo":{"releases":{"list":{"data":{"release_count":8,"releases":[{"tag_name":"v1.2.0","body":"CNB improvements","published_at":"2026-11-07T08:00:00Z","is_latest":true},{"tag_name":"v1.3.0-rc.1","body":"Preview","prerelease":true}]}}}}}}}}}</script></head></html>`)
+		fmt.Fprint(w, `<html><head><script id="__NEXT_DATA__" type="application/json" nonce="test">{"props":{"pageProps":{"initialState":{"slug":{"repo":{"releases":{"list":{"data":{"release_count":8,"releases":[{"tag_ref":"refs/tags/v1.2.0","body":"CNB improvements","published_at":"2026-11-07T08:00:00Z","is_draft":false,"is_prerelease":false,"is_latest":true},{"tag_ref":"refs/tags/v1.3.0-rc.1","body":"Preview","is_draft":false,"is_prerelease":true}]}}}}}}}}}</script></head></html>`)
 	}))
 	defer server.Close()
 	page, err := Releases(context.Background(), server.Client(), SourceCNB, server.URL, 1, 5)

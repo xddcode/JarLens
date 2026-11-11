@@ -75,4 +75,30 @@ func TestReleaseFeedIncludesInstallablePackages(t *testing.T) {
 			t.Fatalf("duplicate portable archive entered the feed: %+v", asset)
 		}
 	}
+
+	cnbManifest := filepath.Join(directory, "cnb-latest.json")
+	command = exec.Command("go", "tool", "viva", "feed", "-C", "..",
+		"-dir", directory, "-out", cnbManifest,
+		"-app", "io.github.xddcode.jarlens", "-version", "9.9.9", "-channel", "stable",
+		"-base-url", "https://cnb.cool/xddcode/JarLens/-/releases/download/v9.9.9",
+		"-notes", "https://cnb.cool/xddcode/JarLens/-/releases/tag/v9.9.9",
+	)
+	command.Env = append(os.Environ(), "VIVA_UPDATE_KEY="+base64.StdEncoding.EncodeToString(private))
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("CNB viva feed: %v\n%s", err, output)
+	}
+	body, err = os.ReadFile(cnbManifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(body, &feed); err != nil {
+		t.Fatal(err)
+	}
+	asset, err = feed.Asset("windows", "amd64")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(asset.URL, "https://cnb.cool/xddcode/JarLens/-/releases/download/v9.9.9/") {
+		t.Fatalf("CNB update asset points to the wrong host: %+v", asset)
+	}
 }

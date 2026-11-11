@@ -143,6 +143,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
+      actions: write
       contents: write
     steps:
       - uses: actions/checkout@v7
@@ -170,10 +171,19 @@ jobs:
         env:
           VIVA_UPDATE_KEY: ${{ secrets.VIVA_UPDATE_KEY }}
         run: |
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            echo "Skipping stable automatic-update feeds for a prerelease"
+            exit 0
+          fi
           go tool viva feed -dir "$RUNNER_TEMP/release" \
             -base-url "https://github.com/${GITHUB_REPOSITORY}/releases/latest/download" \
             -channel stable \
             -notes "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
+          go tool viva feed -dir "$RUNNER_TEMP/release" \
+            -out "$RUNNER_TEMP/release/cnb-latest.json" \
+            -base-url "https://cnb.cool/xddcode/JarLens/-/releases/download/${GITHUB_REF_NAME}" \
+            -channel stable \
+            -notes "https://cnb.cool/xddcode/JarLens/-/releases/tag/${GITHUB_REF_NAME}"
           JARLENS_UPDATE_FEED_DIR="$RUNNER_TEMP/release" go test ./internal/update -run '^TestPublishedFeedSignature$' -count=1
       - name: Checksum the complete artifact set
         shell: bash
@@ -209,3 +219,7 @@ jobs:
           else
             gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false --latest
           fi
+      - name: Start CNB release synchronization
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run sync-to-cnb.yaml --repo "$GITHUB_REPOSITORY" -f tag="$GITHUB_REF_NAME"
