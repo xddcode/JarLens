@@ -120,6 +120,7 @@ func (e *Engine) Decompile(ctx context.Context, request decompile.Request) (deco
 	args := []string{"-jar", e.jarPath}
 	args = append(args, e.config.Arguments(request, input, outputDir)...)
 	command := exec.CommandContext(ctx, e.javaPath(), args...)
+	configureProcess(command)
 	command.WaitDelay = 5 * time.Second
 	var logs limitedBuffer
 	command.Stdout = &logs
