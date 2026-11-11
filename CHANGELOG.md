@@ -6,6 +6,8 @@ All notable changes to JarLens are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-11
+
 ### Added
 
 - Signed one-click updates for registered per-user Windows installations, with download progress, cancellation, verification, silent installation, and restart.
