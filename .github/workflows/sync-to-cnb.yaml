@@ -21,7 +21,7 @@ on:
 jobs:
   mirror:
     name: Mirror to CNB.cool
-    if: github.actor == 'xddcode' && github.event_name != 'release'
+    if: github.event_name != 'release'
     runs-on: ubuntu-latest
 
     steps:
@@ -47,7 +47,7 @@ jobs:
 
   sync-release:
     name: Synchronize Release to CNB.cool
-    if: github.actor == 'xddcode' && (github.event_name == 'release' || github.event_name == 'workflow_dispatch')
+    if: (github.event_name == 'release' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       contents: read
