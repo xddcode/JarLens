@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	jarlensupdate "github.com/xddcode/jarlens/internal/update"
@@ -138,5 +139,163 @@ func TestUpdateSourceSwitchPersistsAndScopesCheck(t *testing.T) {
 	click(t, driver, settingsApply)
 	if store.saves != 1 || store.settings.UpdateSource != "cnb" || m.settings.UpdateSource != "cnb" {
 		t.Fatalf("update source was not persisted: %+v", store.settings)
+	}
+}
+
+type fakeUpdateInstaller struct {
+	reason    jarlensupdate.InstallReason
+	prepare   func(context.Context, func(jarlensupdate.InstallProgress)) (jarlensupdate.StagedUpdate, error)
+	launches  int
+	launchErr error
+}
+
+func (installer *fakeUpdateInstaller) Support() jarlensupdate.InstallReason {
+	return installer.reason
+}
+
+func (installer *fakeUpdateInstaller) Prepare(ctx context.Context, _ *jarlensupdate.Download, progress func(jarlensupdate.InstallProgress)) (jarlensupdate.StagedUpdate, error) {
+	if installer.prepare != nil {
+		return installer.prepare(ctx, progress)
+	}
+	return jarlensupdate.StagedUpdate{}, nil
+}
+
+func (installer *fakeUpdateInstaller) Launch(jarlensupdate.StagedUpdate) error {
+	installer.launches++
+	return installer.launchErr
+}
+
+func updateInstallModel(installer *fakeUpdateInstaller, opened *string) *Model {
+	return &Model{
+		UpdateChecker: func(context.Context, jarlensupdate.Source) (jarlensupdate.Release, error) {
+			return jarlensupdate.Release{Version: "9.9.9", URL: "https://example.com/release", Notes: "## 中文\n\n- 新功能"}, nil
+		},
+		UpdateDownloadResolver: func(context.Context, string) (*jarlensupdate.Download, error) {
+			return &jarlensupdate.Download{}, nil
+		},
+		UpdateInstaller: installer,
+		openURL:         func(url string) error { *opened = url; return nil },
+	}
+}
+
+func TestUpdateInstallDownloadsLaunchesAndRestarts(t *testing.T) {
+	opened := ""
+	installer := &fakeUpdateInstaller{}
+	started, allow := make(chan struct{}), make(chan struct{})
+	installer.prepare = func(_ context.Context, progress func(jarlensupdate.InstallProgress)) (jarlensupdate.StagedUpdate, error) {
+		progress(jarlensupdate.InstallProgress{Done: 5, Total: 10})
+		close(started)
+		<-allow
+		return jarlensupdate.StagedUpdate{}, nil
+	}
+	m := updateInstallModel(installer, &opened)
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.CheckForUpdates(true)
+	pumpUntil(t, driver, func() bool { return m.updateDialogOpen })
+	if !hasHit(driver, updateInstall, "立即更新") || shows(driver, "## 中文") {
+		t.Fatal("signed update is not offered, or Markdown was left unrendered")
+	}
+	click(t, driver, updateInstall)
+	<-started
+	pumpUntil(t, driver, func() bool { return m.updateInstall.done == 5 })
+	close(allow)
+	pumpUntil(t, driver, func() bool { return m.updateInstall.phase == updateInstallRestarting })
+	if installer.launches != 1 || opened != "" {
+		t.Fatalf("launches = %d, manual page = %q", installer.launches, opened)
+	}
+}
+
+func TestUpdateInstallFailureKeepsManualDownload(t *testing.T) {
+	opened := ""
+	installer := &fakeUpdateInstaller{prepare: func(context.Context, func(jarlensupdate.InstallProgress)) (jarlensupdate.StagedUpdate, error) {
+		return jarlensupdate.StagedUpdate{}, errors.New("checksum differs")
+	}}
+	m := updateInstallModel(installer, &opened)
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.CheckForUpdates(true)
+	pumpUntil(t, driver, func() bool { return m.updateDialogOpen })
+	click(t, driver, updateInstall)
+	pumpUntil(t, driver, func() bool { return m.updateInstall.phase == updateInstallFailed })
+	if !shows(driver, "checksum differs") || !shows(driver, "旧版本未被替换") {
+		t.Fatal("failed update did not explain the failure and preserve the old version")
+	}
+	click(t, driver, updateDownload)
+	if opened != "https://example.com/release" || installer.launches != 0 {
+		t.Fatalf("manual fallback opened %q, launches = %d", opened, installer.launches)
+	}
+}
+
+func TestUpdateInstallCanCancelDownload(t *testing.T) {
+	opened := ""
+	started, stopped := make(chan struct{}), make(chan struct{})
+	installer := &fakeUpdateInstaller{prepare: func(ctx context.Context, _ func(jarlensupdate.InstallProgress)) (jarlensupdate.StagedUpdate, error) {
+		close(started)
+		<-ctx.Done()
+		close(stopped)
+		return jarlensupdate.StagedUpdate{}, ctx.Err()
+	}}
+	m := updateInstallModel(installer, &opened)
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.CheckForUpdates(true)
+	pumpUntil(t, driver, func() bool { return m.updateDialogOpen })
+	click(t, driver, updateInstall)
+	<-started
+	clicked := false
+	for _, hit := range driver.Snapshot().Hits {
+		if hit.ID == updateDismiss && hit.Label == "取消" {
+			if err := driver.Click(hit.Bounds.X+hit.Bounds.Width/2, hit.Bounds.Y+hit.Bounds.Height/2); err != nil {
+				t.Fatal(err)
+			}
+			clicked = true
+			break
+		}
+	}
+	if !clicked {
+		t.Fatal("download cancel button is missing")
+	}
+	<-stopped
+	if m.updateDialogOpen || installer.launches != 0 || m.updateInstall.cancel != nil {
+		t.Fatal("cancelling left the update active")
+	}
+}
+
+func TestUpdateInstallUnsupportedKeepsManualDownload(t *testing.T) {
+	opened := ""
+	installer := &fakeUpdateInstaller{reason: jarlensupdate.InstallNotUserInstall}
+	m := updateInstallModel(installer, &opened)
+	resolved := false
+	m.UpdateDownloadResolver = func(context.Context, string) (*jarlensupdate.Download, error) {
+		resolved = true
+		return &jarlensupdate.Download{}, nil
+	}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.CheckForUpdates(true)
+	pumpUntil(t, driver, func() bool { return m.updateDialogOpen })
+	if hasHit(driver, updateInstall, "立即更新") || !shows(driver, "开发版、便携版") || resolved {
+		t.Fatal("unsupported installation was offered a signed download")
+	}
+	click(t, driver, updateDownload)
+	if opened != "https://example.com/release" {
+		t.Fatalf("manual page = %q", opened)
+	}
+}
+
+func TestUpdateInstallMissingSignedPackageFallsBack(t *testing.T) {
+	opened := ""
+	installer := &fakeUpdateInstaller{}
+	m := updateInstallModel(installer, &opened)
+	m.UpdateDownloadResolver = func(context.Context, string) (*jarlensupdate.Download, error) {
+		return nil, jarlensupdate.ErrInstallUnavailable
+	}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.CheckForUpdates(true)
+	pumpUntil(t, driver, func() bool { return m.updateDialogOpen })
+	if hasHit(driver, updateInstall, "立即更新") || !shows(driver, "签名更新包") {
+		t.Fatal("missing signed package did not retain the manual fallback")
 	}
 }

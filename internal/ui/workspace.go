@@ -129,6 +129,7 @@ var (
 	updateDismiss                   = tree.ID(workbench, "update-dismiss")
 	updateClose                     = tree.ID(workbench, "update-close")
 	updateDownload                  = tree.ID(workbench, "update-download")
+	updateInstall                   = tree.ID(workbench, "update-install")
 	updateNotes                     = tree.ID(workbench, "update-notes")
 	settingsDismiss                 = tree.ID(workbench, "settings-dismiss")
 	settingsClose                   = tree.ID(workbench, "settings-close")
@@ -383,6 +384,10 @@ func NewConfig(m *Model) app.Config {
 			}
 			if m.settingsEngineSelect.Open {
 				return m.settingsEngineSelect.Wheel(event)
+			}
+			if m.updateDialogOpen && event.Target == updateNotes {
+				m.scrollUpdateNotes(event.StepY(24))
+				return vivaui.EventResult{Handled: true, Repaint: true}
 			}
 			if m.mainMenuOpen && m.projectMenuScroll.Wheel(event) {
 				return vivaui.EventResult{Handled: true, Repaint: true}

@@ -2,6 +2,8 @@ package ui
 
 var interfaceTranslations = map[string]map[string]string{
 	languageEnglish: {
+		"立即更新": "Update Now", "正在下载更新...": "Downloading update...", "正在下载更新：%s / %s": "Downloading update: %s / %s", "正在校验并准备安装...": "Verifying and preparing installation...", "更新已就绪，正在重启 JarLens...": "Update ready. Restarting JarLens...", "无法完成自动更新：%s": "Automatic update failed: %s", "旧版本未被替换，你仍然可以打开下载页手动更新。": "Your existing version was not replaced. You can still open the download page and update manually.", "更新说明": "Release Notes",
+		"当前是开发版、便携版或非 Windows 安装，请打开下载页手动更新。": "This is a development, portable, or non-Windows installation. Open the download page to update manually.", "当前安装目录不可写，请打开下载页手动更新。": "The installation directory is not writable. Open the download page to update manually.", "系统级安装不能由当前用户直接替换，请使用系统安装包更新。": "A system-wide installation cannot be replaced by the current user. Use the system installer to update.", "该版本暂未提供可用的签名更新包，请打开下载页手动更新。": "No signed update package is available for this release. Open the download page to update manually.",
 		"打开 JarLens": "Open JarLens", "退出": "Quit", "启动时": "On Startup", "恢复最近项目": "Restore Recent Project", "回到 Home": "Return to Home", "关闭时最小化到托盘": "Minimize to Tray on Close", "开机自动启动": "Launch at Login", "无法设置开机自动启动": "Unable to configure automatic startup",
 		"选择下次启动时恢复最近项目，或回到 Home。": "Choose whether to restore the recent project or return to Home on the next startup.", "关闭窗口时保留应用在托盘中运行；可从托盘菜单退出。": "Keep JarLens running in the tray when the window closes; quit from the tray menu.", "登录系统时自动启动 JarLens。": "Launch JarLens automatically when you log in.",
 		"选择打开的文件": "Select Open File",
@@ -34,6 +36,8 @@ var interfaceTranslations = map[string]map[string]string{
 		"暂时无法获取更新日志，请检查网络后重试": "Unable to load release notes. Check your network and try again.", "无法打开版本发布页面": "Unable to open the releases page", "已打开版本发布页面": "Releases page opened", "查看所选来源发布的各版本更新内容": "View release notes published on the selected source", "在官网查看": "View on Website", "刷新更新日志": "Refresh Release Notes", "正在获取更新日志...": "Loading release notes...", "重试": "Retry", "该来源还没有发布正式版本": "No stable releases have been published on this source", "查看 %s 更新日志": "View %s release notes", "当前": "Current", "发布于 ": "Published ", "2006年1月2日": "Jan 2, 2006",
 	},
 	languageJapanese: {
+		"立即更新": "今すぐ更新", "正在下载更新...": "更新をダウンロードしています...", "正在下载更新：%s / %s": "更新をダウンロードしています：%s / %s", "正在校验并准备安装...": "検証してインストールを準備しています...", "更新已就绪，正在重启 JarLens...": "更新の準備ができました。JarLens を再起動しています...", "无法完成自动更新：%s": "自動更新を完了できません：%s", "旧版本未被替换，你仍然可以打开下载页手动更新。": "以前のバージョンは置き換えられていません。ダウンロードページから手動で更新できます。", "更新说明": "リリースノート",
+		"当前是开发版、便携版或非 Windows 安装，请打开下载页手动更新。": "開発版、ポータブル版、または Windows 以外のインストールです。ダウンロードページから手動で更新してください。", "当前安装目录不可写，请打开下载页手动更新。": "インストールディレクトリに書き込めません。ダウンロードページから手動で更新してください。", "系统级安装不能由当前用户直接替换，请使用系统安装包更新。": "システム全体のインストールは現在のユーザーで置き換えられません。システムインストーラーで更新してください。", "该版本暂未提供可用的签名更新包，请打开下载页手动更新。": "このリリースには署名済み更新パッケージがありません。ダウンロードページから手動で更新してください。",
 		"打开 JarLens": "JarLens を開く", "退出": "終了", "启动时": "起動時", "恢复最近项目": "最近のプロジェクトを復元", "回到 Home": "Home に戻る", "关闭时最小化到托盘": "閉じるときにトレイに最小化", "开机自动启动": "ログイン時に自動起動", "无法设置开机自动启动": "自動起動を設定できません",
 		"选择下次启动时恢复最近项目，或回到 Home。": "次回の起動時に最近のプロジェクトを復元するか、Home に戻るかを選択します。", "关闭窗口时保留应用在托盘中运行；可从托盘菜单退出。": "ウィンドウを閉じてもトレイで実行を続けます。トレイメニューから終了できます。", "登录系统时自动启动 JarLens。": "ログイン時に JarLens を自動的に起動します。",
 		"选择打开的文件": "開いているファイルを選択",
@@ -66,6 +70,8 @@ var interfaceTranslations = map[string]map[string]string{
 		"暂时无法获取更新日志，请检查网络后重试": "リリースノートを取得できません。ネットワークを確認して再試行してください。", "无法打开版本发布页面": "リリースページを開けません", "已打开版本发布页面": "リリースページを開きました", "查看所选来源发布的各版本更新内容": "選択したソースに公開された各バージョンのリリースノートを表示します", "在官网查看": "公式サイトで表示", "刷新更新日志": "リリースノートを更新", "正在获取更新日志...": "リリースノートを取得しています...", "重试": "再試行", "该来源还没有发布正式版本": "このソースにはまだ安定版が公開されていません", "查看 %s 更新日志": "%s のリリースノートを表示", "当前": "現在", "发布于 ": "公開日 ", "2006年1月2日": "2006年1月2日",
 	},
 	languageKorean: {
+		"立即更新": "지금 업데이트", "正在下载更新...": "업데이트 다운로드 중...", "正在下载更新：%s / %s": "업데이트 다운로드 중: %s / %s", "正在校验并准备安装...": "확인하고 설치를 준비하는 중...", "更新已就绪，正在重启 JarLens...": "업데이트가 준비되었습니다. JarLens를 다시 시작하는 중...", "无法完成自动更新：%s": "자동 업데이트를 완료할 수 없습니다: %s", "旧版本未被替换，你仍然可以打开下载页手动更新。": "기존 버전은 그대로입니다. 다운로드 페이지에서 수동으로 업데이트할 수 있습니다.", "更新说明": "릴리스 노트",
+		"当前是开发版、便携版或非 Windows 安装，请打开下载页手动更新。": "개발 버전, 포터블 버전 또는 Windows가 아닌 설치입니다. 다운로드 페이지에서 수동으로 업데이트하세요.", "当前安装目录不可写，请打开下载页手动更新。": "설치 디렉터리에 쓸 수 없습니다. 다운로드 페이지에서 수동으로 업데이트하세요.", "系统级安装不能由当前用户直接替换，请使用系统安装包更新。": "현재 사용자는 시스템 전체 설치를 교체할 수 없습니다. 시스템 설치 관리자로 업데이트하세요.", "该版本暂未提供可用的签名更新包，请打开下载页手动更新。": "이 릴리스에는 서명된 업데이트 패키지가 없습니다. 다운로드 페이지에서 수동으로 업데이트하세요.",
 		"打开 JarLens": "JarLens 열기", "退出": "종료", "启动时": "시작 시", "恢复最近项目": "최근 프로젝트 복원", "回到 Home": "Home으로 돌아가기", "关闭时最小化到托盘": "닫을 때 트레이로 최소화", "开机自动启动": "로그인 시 자동 시작", "无法设置开机自动启动": "자동 시작을 설정할 수 없습니다",
 		"选择下次启动时恢复最近项目，或回到 Home。": "다음 시작 시 최근 프로젝트를 복원할지 Home으로 돌아갈지 선택합니다.", "关闭窗口时保留应用在托盘中运行；可从托盘菜单退出。": "창을 닫은 후에도 트레이에서 계속 실행하며, 트레이 메뉴에서 종료할 수 있습니다.", "登录系统时自动启动 JarLens。": "로그인할 때 JarLens를 자동으로 시작합니다.",
 		"选择打开的文件": "열린 파일 선택",

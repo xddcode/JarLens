@@ -37,6 +37,13 @@ func (m *Model) CheckForUpdates(automatic bool) {
 		result := &taskResult{kind: taskUpdate, generation: generation, automatic: automatic, err: err}
 		if err == nil {
 			result.update = &release
+			if m.UpdateInstaller != nil && m.UpdateInstaller.Support() == jarlensupdate.InstallSupported && jarlensupdate.Newer(jarlensupdate.Current, release.Version) {
+				resolver := m.UpdateDownloadResolver
+				if resolver == nil {
+					resolver = jarlensupdate.ResolveDownload
+				}
+				result.download, result.downloadErr = resolver(ctx, release.Version)
+			}
 		}
 		m.publish(result)
 	}()
@@ -65,6 +72,17 @@ func (m *Model) applyUpdateResult(result *taskResult) {
 		return
 	}
 	m.updateRelease = result.update
+	m.updateDownload = result.download
+	m.updateDownloadErr = result.downloadErr
+	m.updateInstall.phase = updateInstallIdle
+	m.updateInstall.failure = ""
+	m.updateNotesOffset = 0
+	m.updateNotesMax = 0
+	notes := result.update.Notes
+	if notes == "" {
+		notes = m.t("该版本没有提供更新说明。")
+	}
+	m.updateNotesDoc.Parse(notes)
 	m.updateDialogOpen = true
 	m.updateStatus = m.tf("发现新版本 %s", result.update.Version)
 }
@@ -94,27 +112,49 @@ func (m *Model) paintUpdateDialog(f *flex.Frame, theme vivaui.Theme) {
 		Scope: updateDialog, DismissID: updateDismiss, CloseID: updateClose,
 	})
 	dialog.Body(func() {
-		f.Column().Gap(12).Children(func() {
-			f.Text(m.tf("当前版本 %s，新版本 %s。", jarlensupdate.Current, release.Version)).FontSize(13)
-			notes := release.Notes
-			if notes == "" {
-				notes = m.t("该版本没有提供更新说明。")
-			}
-			f.ScrollArea(updateNotes).Height(220).Children(func() {
-				f.Paragraph(notes, 12).FontSize(12).Muted()
+		if m.updateInstall.phase == updateInstallIdle {
+			f.Column().Gap(12).Children(func() {
+				f.Text(m.tf("当前版本 %s，新版本 %s。", jarlensupdate.Current, release.Version)).FontSize(13)
+				f.Slot().Height(220).DrawOver(m.paintUpdateNotes)
+				if reason := m.updateInstallUnavailableReason(); reason != "" {
+					f.Paragraph(reason, 3).FontSize(12).Muted()
+				}
 			})
-		})
+			return
+		}
+		m.paintUpdateInstallProgress(f)
 	})
 	dialog.Footer(func() {
-		if f.Button(updateDismiss, m.t("稍后")).Outline().Clicked() {
-			m.updateDialogOpen = false
-		}
-		if f.Button(updateDownload, m.t("打开下载页")).Clicked() {
-			m.openUpdateRelease()
+		switch m.updateInstall.phase {
+		case updateInstallIdle:
+			if f.Button(updateDismiss, m.t("稍后")).Outline().Clicked() {
+				m.closeUpdateDialog()
+			}
+			if m.canInstallUpdate() {
+				if f.Button(updateDownload, m.t("打开下载页")).Outline().Clicked() {
+					f.Canvas().AfterPaint(m.openUpdateRelease)
+				}
+				if f.Button(updateInstall, m.t("立即更新")).Clicked() {
+					f.Canvas().AfterPaint(m.startUpdateInstall)
+				}
+			} else if f.Button(updateDownload, m.t("打开下载页")).Clicked() {
+				f.Canvas().AfterPaint(m.openUpdateRelease)
+			}
+		case updateInstallDownloading, updateInstallApplying:
+			if f.Button(updateDismiss, m.t("取消")).Outline().Clicked() {
+				m.cancelUpdateInstall()
+			}
+		case updateInstallFailed:
+			if f.Button(updateDismiss, m.t("关闭")).Outline().Clicked() {
+				m.closeUpdateDialog()
+			}
+			if f.Button(updateDownload, m.t("打开下载页")).Clicked() {
+				f.Canvas().AfterPaint(m.openUpdateRelease)
+			}
 		}
 	})
 	if dialog.Dismissed() {
-		m.updateDialogOpen = false
+		m.closeUpdateDialog()
 	}
 	_ = theme
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/vivaui/viva/app"
 	"github.com/vivaui/viva/components"
 	"github.com/vivaui/viva/flex"
+	"github.com/vivaui/viva/markdown"
 	"github.com/vivaui/viva/text"
 	vivaui "github.com/vivaui/viva/ui"
 	"github.com/xddcode/jarlens/internal/archive"
@@ -33,15 +34,17 @@ const (
 )
 
 type taskResult struct {
-	kind       taskKind
-	generation uint64
-	entryID    int
-	pane       *editorPane
-	workspace  *jarlensworkspace.Workspace
-	result     decompile.Result
-	update     *jarlensupdate.Release
-	automatic  bool
-	err        error
+	kind        taskKind
+	generation  uint64
+	entryID     int
+	pane        *editorPane
+	workspace   *jarlensworkspace.Workspace
+	result      decompile.Result
+	update      *jarlensupdate.Release
+	download    *jarlensupdate.Download
+	downloadErr error
+	automatic   bool
+	err         error
 }
 
 type document struct {
@@ -102,21 +105,31 @@ type SettingsStore interface {
 }
 
 type Model struct {
-	Theme                Appearance
-	TrayIcon             app.WindowIcon
-	RecentStore          RecentStore
-	SettingsStore        SettingsStore
-	MaximizeWindow       func()
-	RestoreWindow        func()
-	UpdateChecker        func(context.Context, jarlensupdate.Source) (jarlensupdate.Release, error)
-	UpdateReleasesLoader func(context.Context, jarlensupdate.Source, int, int) (jarlensupdate.ReleasePage, error)
-	SetLaunchAtLogin     func(bool) error
+	Theme                  Appearance
+	TrayIcon               app.WindowIcon
+	RecentStore            RecentStore
+	SettingsStore          SettingsStore
+	MaximizeWindow         func()
+	RestoreWindow          func()
+	UpdateChecker          func(context.Context, jarlensupdate.Source) (jarlensupdate.Release, error)
+	UpdateReleasesLoader   func(context.Context, jarlensupdate.Source, int, int) (jarlensupdate.ReleasePage, error)
+	UpdateDownloadResolver func(context.Context, string) (*jarlensupdate.Download, error)
+	UpdateInstaller        jarlensupdate.Installer
+	SetLaunchAtLogin       func(bool) error
 
 	updateRelease            *jarlensupdate.Release
+	updateDownload           *jarlensupdate.Download
+	updateDownloadErr        error
 	updateChecking           bool
 	updateDialogOpen         bool
 	updateStatus             string
 	updateCancel             context.CancelFunc
+	updateInstall            updateInstallState
+	pendingUpdateInstall     *updateInstallResult
+	updateNotesDoc           markdown.Document
+	updateNotesView          components.MarkdownView
+	updateNotesOffset        float32
+	updateNotesMax           float32
 	updateReleases           []jarlensupdate.Release
 	updateReleasesLoading    bool
 	updateReleasesLoaded     bool
@@ -622,9 +635,14 @@ func (m *Model) wake() {
 	m.pending = nil
 	releases := m.pendingUpdateReleases
 	m.pendingUpdateReleases = nil
+	install := m.pendingUpdateInstall
+	m.pendingUpdateInstall = nil
 	m.mu.Unlock()
 	if releases != nil {
 		m.applyUpdateReleasesResult(releases)
+	}
+	if install != nil {
+		m.applyUpdateInstallResult(install)
 	}
 	if result == nil || result.generation != m.generation {
 		return
@@ -734,6 +752,11 @@ func (m *Model) close() {
 		m.updateCancel()
 		m.updateCancel = nil
 	}
+	if m.updateInstall.cancel != nil {
+		m.updateInstall.cancel()
+		m.updateInstall.cancel = nil
+	}
+	m.updateInstall.serial++
 	m.cancelUpdateReleases()
 	m.closeEngines()
 }

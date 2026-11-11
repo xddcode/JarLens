@@ -198,9 +198,13 @@ Cancel discards unapplied edits. The last selected page is remembered across
 openings. Update Management selects GitHub or CNB for both update checks and
 release history. Five stable releases load per page, with expandable notes,
 publication dates, refresh, and load-more controls. GitHub uses its public release
-API; CNB reads the public release page without requiring a user token. Opening a
-download page requires a user click. The checker never downloads or executes a
-package or replaces the running program.
+API; CNB reads the public release page without requiring a user token. Release
+notes use Viva's Markdown view rather than literal Markdown text. Registered,
+writable per-user Windows installations offer Update Now with progress,
+cancellation, verification, silent installation, and restart. Development,
+portable, non-Windows, read-only, and system-wide installations retain the manual
+download action with a reason. Downloads and installations happen only after a
+user click; checksum, signature, or launch failures leave the old version in place.
 
 ## Typography and source
 

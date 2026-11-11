@@ -20,6 +20,14 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+      - name: Check update signing key
+        env:
+          VIVA_UPDATE_KEY: ${{ secrets.VIVA_UPDATE_KEY }}
+        run: |
+          if [ -z "$VIVA_UPDATE_KEY" ]; then
+            echo "::error::VIVA_UPDATE_KEY is required to sign the automatic-update feed"
+            exit 1
+          fi
       - name: Check tag, version, and notes
         run: |
           app_version=$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' viva.toml | head -1)
@@ -105,7 +113,7 @@ jobs:
                 destination="$RUNNER_TEMP/upload/jarlens${suffix}_${version}_${{ matrix.arch }}.deb"
                 ;;
               *-setup.exe)
-                destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}$suffix-setup.exe"
+                destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}-setup.exe"
                 ;;
               *.tar.gz)
                 destination="$RUNNER_TEMP/upload/jarlens-$version-${{ matrix.target }}-${{ matrix.arch }}$suffix.tar.gz"
@@ -138,6 +146,10 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
       - uses: actions/download-artifact@v4
         with:
           pattern: package-*
@@ -153,6 +165,16 @@ jobs:
           output-file: ${{ runner.temp }}/release/jarlens-sbom.cdx.json
           upload-artifact: false
           upload-release-assets: false
+      - name: Sign the automatic-update feed
+        shell: bash
+        env:
+          VIVA_UPDATE_KEY: ${{ secrets.VIVA_UPDATE_KEY }}
+        run: |
+          go tool viva feed -dir "$RUNNER_TEMP/release" \
+            -base-url "https://github.com/${GITHUB_REPOSITORY}/releases/latest/download" \
+            -channel stable \
+            -notes "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
+          JARLENS_UPDATE_FEED_DIR="$RUNNER_TEMP/release" go test ./internal/update -run '^TestPublishedFeedSignature$' -count=1
       - name: Checksum the complete artifact set
         shell: bash
         run: |
