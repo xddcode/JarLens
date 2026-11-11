@@ -240,12 +240,10 @@ func TestProjectTitleMenuControlsTree(t *testing.T) {
 	m.OpenPath(writeMultiClassJAR(t))
 	pumpUntil(t, driver, func() bool { return m.workspace != nil })
 
-	click(t, driver, projectTitle)
 	click(t, driver, projectExpandAll)
 	if !m.expanded[findNodeID(t, m, "example")] {
-		t.Fatal("project title menu did not expand the tree")
+		t.Fatal("expand-all icon did not expand the tree")
 	}
-	click(t, driver, projectTitle)
 	click(t, driver, projectCollapseAll)
 	if len(m.expanded) != 0 {
 		t.Fatal("project title menu did not collapse the tree")
@@ -286,6 +284,51 @@ func TestProjectFilter(t *testing.T) {
 	}
 	if !shows(driver, "World.class") {
 		t.Fatal("clearing the filter did not restore the tree")
+	}
+}
+
+func hasFocusGlow(driver *app.Driver, theme ui.Theme) bool {
+	color := focusGlow(theme, true)
+	for _, primitive := range driver.Snapshot().Primitives {
+		if primitive.Color == color {
+			return true
+		}
+	}
+	return false
+}
+
+func TestSearchShortcutFollowsFocus(t *testing.T) {
+	m := &Model{engine: &fakeEngine{source: "public class Hello {}\n"}}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.OpenPath(writeMultiClassJAR(t))
+	pumpUntil(t, driver, func() bool { return m.workspace != nil })
+	click(t, driver, projectNodes.At(findNodeID(t, m, "example")))
+	click(t, driver, projectNodes.At(findNodeID(t, m, "Hello.class")))
+	pumpUntil(t, driver, func() bool { return m.source != "" })
+	click(t, driver, projectNodes.At(findNodeID(t, m, "Hello.class")))
+	if !projectTreeEventTarget(projectNodes.At(findNodeID(t, m, "Hello.class"))) {
+		t.Fatal("project node is not recognized as a tree target")
+	}
+	focusedBefore := driver.Snapshot().Focused
+	if handled, err := driver.ShortcutChord(ui.ModifierControl, 'f'); err != nil || !handled {
+		t.Fatalf("project search shortcut was not handled: %v", err)
+	}
+	if !m.filterOpen || m.findOpen {
+		t.Fatalf("Ctrl+F did not target the focused project tree: before=%v after=%v", focusedBefore, driver.Snapshot().Focused)
+	}
+	if !hasFocusGlow(driver, WorkspaceTheme(m.Theme)) {
+		t.Fatal("focused project tree does not show its subtle focus glow")
+	}
+	click(t, driver, sourceEditor)
+	if handled, err := driver.ShortcutChord(ui.ModifierControl, 'f'); err != nil || !handled {
+		t.Fatalf("source search shortcut was not handled: %v", err)
+	}
+	if !m.findOpen {
+		t.Fatal("Ctrl+F did not target the focused source editor")
+	}
+	if !hasFocusGlow(driver, WorkspaceTheme(m.Theme)) {
+		t.Fatal("focused source editor does not show its subtle focus glow")
 	}
 }
 

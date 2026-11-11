@@ -23,7 +23,7 @@ func (m *Model) revealDocument(doc *document, name string) {
 	doc.pendingCenterOffset = offset
 	if m.currentDocument() == doc {
 		m.code = doc.code
-		m.focusSource = true
+		m.focusSource = !m.focusProject
 	}
 }
 

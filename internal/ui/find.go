@@ -9,6 +9,22 @@ import (
 	"github.com/vivaui/viva/text"
 )
 
+func (m *Model) showProjectFilter() {
+	m.focusProject = true
+	m.filterOpen = true
+	m.filterFocus = true
+	m.findOpen = false
+	m.findFocus = false
+}
+
+func (m *Model) showSourceFind() {
+	m.focusProject = false
+	m.findOpen = true
+	m.findFocus = true
+	m.filterOpen = false
+	m.filterFocus = false
+}
+
 func (m *Model) updateFind() {
 	query := m.findField.Text()
 	if m.source == "" {

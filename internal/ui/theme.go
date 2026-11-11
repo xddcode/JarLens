@@ -138,6 +138,16 @@ func tabActionsColor(appearance Appearance) vivaui.Color {
 	return vivaui.RGB24(0xf2c55c)
 }
 
+func focusGlow(theme vivaui.Theme, focused bool) vivaui.Color {
+	color := theme.Primary
+	if focused {
+		color.Alpha = 0.24
+	} else {
+		color.Alpha = 0
+	}
+	return color
+}
+
 func setWorkspaceMetrics(theme *vivaui.Theme) {
 	theme.Metrics.ControlHeight = 28
 	theme.Metrics.RadiusControl = 4
