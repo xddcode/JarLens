@@ -15,7 +15,7 @@ import (
 	"unicode/utf8"
 )
 
-const Current = "0.1.0"
+const Current = "0.2.0"
 const Feed = "https://api.github.com/repos/xddcode/JarLens/releases/latest"
 
 var ErrNoRelease = errors.New("update: no published release")

@@ -78,7 +78,7 @@ go tool viva build
 | Headless UI and real JDK integration tests | Available |
 | Global index, cache, and multi-engine diff | Planned |
 | Managed Java runtime in standard packages | Available |
-| Installers and published releases | Not yet available |
+| Installers and published releases | Available |
 
 The roadmap and compatibility policy are in [ROADMAP.md](ROADMAP.md) and [docs/compatibility.md](docs/compatibility.md).
 
@@ -95,7 +95,7 @@ The roadmap and compatibility policy are in [ROADMAP.md](ROADMAP.md) and [docs/c
 
 基于 Go 和 Viva 的现代化 GPU 原生 Java 反编译与代码浏览工具。
 
-JarLens 正在积极开发，尚未发布正式版本。当前源码已支持打开 JAR/Class、浏览包结构、使用内置 Vineflower 引擎反编译类，以及导出 Java 源码。
+JarLens 已发布正式版本并持续开发，支持打开 JAR/Class、浏览包结构、使用内置 Vineflower、CFR 或 Procyon 引擎反编译类，以及导出 Java 源码。
 
 ### 本地运行
 

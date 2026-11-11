@@ -1,13 +1,13 @@
 # Compatibility and support matrix
 
-JarLens has not published a release. This page distinguishes the current build
+JarLens publishes stable releases. This page distinguishes the current build
 target from verified product support.
 
 | Platform | Build target | Current verification |
 | --- | --- | --- |
 | Windows amd64 | Viva Win32 / Direct3D 11 | Real JAR opening and Vineflower source display verified locally; GitHub Actions build |
-| macOS amd64/arm64 | Viva Cocoa / Metal | CI build; native product verification required before release |
-| Linux amd64/arm64 | Viva X11 / Vulkan | CI build; native product verification required before release |
+| macOS amd64/arm64 | Viva Cocoa / Metal | CI build and headless behavior tests; native product verification remains limited |
+| Linux amd64/arm64 | Viva X11 / Vulkan | CI build and headless behavior tests; native product verification remains limited |
 
 ## Runtime and file formats
 

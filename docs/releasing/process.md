@@ -26,10 +26,12 @@ an installer-specific format.
 ## Prepare
 
 1. Complete the milestone and confirm all required checks on `main`.
-2. Update `CHANGELOG.md`, compatibility notes, third-party notices, and the
-   version in `viva.toml`.
-3. Add `docs/releases/<version>.md` with verified features, known limitations,
-   engine and Viva versions, and upgrade notes.
+2. Update `CHANGELOG.md`, compatibility notes, third-party notices, the version
+   in `viva.toml`, and `internal/update.Current`.
+3. Add `docs/releases/<version>.md` with concise Chinese and English sections,
+   clear Markdown headings, verified highlights, known limitations, engine and
+   Viva versions, and upgrade notes. Both languages must cover the same important
+   changes without repeating implementation details.
 4. Merge the release preparation PR. Do not tag an unreviewed working tree.
 
 ## Tag and build
