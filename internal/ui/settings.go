@@ -11,6 +11,7 @@ import (
 	"github.com/vivaui/viva/flex"
 	vivaui "github.com/vivaui/viva/ui"
 	jarlensupdate "github.com/xddcode/jarlens/internal/update"
+	jarlensworkspace "github.com/xddcode/jarlens/internal/workspace"
 )
 
 type settingsPage struct {
@@ -28,7 +29,7 @@ var (
 		{title: "编辑器", parent: -1, group: true, description: "调整代码字体、字号和编辑器显示。"},
 		{title: "字体", parent: 2, labels: []string{"代码字体", "字号", "字体大小"}},
 		{title: "常规", parent: 2, labels: []string{"Tab 宽度", "缩进", "显示缩进参考线", "显示行号", "高亮当前行"}},
-		{title: "系统设置", parent: 0, labels: []string{"Java 可执行文件", "可执行文件", "反编译引擎", "Vineflower", "CFR", "Procyon", "启动时恢复最近项目"}},
+		{title: "系统设置", parent: 0, labels: []string{"Java 可执行文件", "可执行文件", "反编译引擎", "Vineflower", "CFR", "Procyon", "启动时", "恢复最近项目", "回到 Home", "关闭时最小化到托盘", "开机自动启动"}},
 		{title: "更新管理", parent: -1, labels: []string{"更新下载源", "默认下载源", "CNB", "自动检查更新", "检查更新", "当前版本", "更新日志", "加载更多"}},
 	}
 	settingsPageChildren = [][]int{{1, 5}, nil, {3, 4}, nil, nil, nil, nil}
@@ -198,6 +199,17 @@ func (m *Model) saveSettings(closeDialog bool) {
 	if decompilerEngineIndex(m.settingsDraft.Engine) < 0 {
 		m.settingsDraft.Engine = "vineflower"
 	}
+	if m.settingsDraft.LaunchAtLogin != m.settings.LaunchAtLogin {
+		setLaunchAtLogin := m.SetLaunchAtLogin
+		if setLaunchAtLogin == nil {
+			setLaunchAtLogin = jarlensworkspace.SetLaunchAtLogin
+		}
+		if err := setLaunchAtLogin(m.settingsDraft.LaunchAtLogin); err != nil {
+			m.settingsError = "无法设置开机自动启动"
+			m.diagnostic = err.Error()
+			return
+		}
+	}
 	resetEditors := m.settingsDraft.FontSize != m.settings.FontSize || m.settingsDraft.CodeFont != m.settings.CodeFont
 	previousTabWidth := m.settings.TabWidth
 	m.settings = m.settingsDraft
@@ -238,7 +250,7 @@ func (m *Model) settingsPageDirty(page int) bool {
 	case 4:
 		return m.settingsDraft.TabWidth != m.settings.TabWidth || m.settingsDraft.ShowIndentGuides != m.settings.ShowIndentGuides || m.settingsDraft.ShowLineNumbers != m.settings.ShowLineNumbers || m.settingsDraft.HighlightCurrentLine != m.settings.HighlightCurrentLine
 	case 5:
-		return strings.TrimSpace(m.settingsJava.Text()) != m.settings.JavaPath || m.settingsDraft.RestoreLastProject != m.settings.RestoreLastProject || m.settingsDraft.Engine != m.settings.Engine
+		return strings.TrimSpace(m.settingsJava.Text()) != m.settings.JavaPath || m.settingsDraft.RestoreLastProject != m.settings.RestoreLastProject || m.settingsDraft.CloseToTray != m.settings.CloseToTray || m.settingsDraft.LaunchAtLogin != m.settings.LaunchAtLogin || m.settingsDraft.Engine != m.settings.Engine
 	case 6:
 		return m.settingsDraft.CheckUpdates != m.settings.CheckUpdates || m.selectedUpdateSource() != jarlensupdate.ParseSource(m.settings.UpdateSource)
 	default:
@@ -284,6 +296,8 @@ func (m *Model) resetSettingsPage(page int) {
 		m.settingsDraft.HighlightCurrentLine = m.settings.HighlightCurrentLine
 	case 5:
 		m.settingsDraft.RestoreLastProject = m.settings.RestoreLastProject
+		m.settingsDraft.CloseToTray = m.settings.CloseToTray
+		m.settingsDraft.LaunchAtLogin = m.settings.LaunchAtLogin
 		m.settingsDraft.Engine = m.settings.Engine
 		m.settingsJavaText = m.settings.JavaPath
 		m.settingsJava.SetText(m.settingsJavaText)
@@ -726,8 +740,20 @@ func (m *Model) paintSystemSettings(f *flex.Frame, theme vivaui.Theme) {
 		})
 	})
 	settingsGroup(f, theme, m.t("启动"), func() {
-		m.settingsToggleRow(f, theme, settingsRestore, "启动时恢复最近项目", m.settingsDraft.RestoreLastProject, func() {
-			m.settingsDraft.RestoreLastProject = !m.settingsDraft.RestoreLastProject
+		m.settingsRow(f, theme, "启动时", func() {
+			selected := 0
+			if !m.settingsDraft.RestoreLastProject {
+				selected = 1
+			}
+			if index, ok := f.Choice(settingsStartup, []string{m.t("恢复最近项目"), m.t("回到 Home")}, selected).Width(240).ChosenIndex(); ok {
+				m.settingsDraft.RestoreLastProject = index == 0
+			}
+		})
+		m.settingsToggleRow(f, theme, settingsCloseToTray, "关闭时最小化到托盘", m.settingsDraft.CloseToTray, func() {
+			m.settingsDraft.CloseToTray = !m.settingsDraft.CloseToTray
+		})
+		m.settingsToggleRow(f, theme, settingsLaunchAtLogin, "开机自动启动", m.settingsDraft.LaunchAtLogin, func() {
+			m.settingsDraft.LaunchAtLogin = !m.settingsDraft.LaunchAtLogin
 		})
 	})
 }
@@ -871,6 +897,12 @@ func (m *Model) settingsDescription(label string) string {
 		return "留空时自动检测内置 JRE、JARLENS_JAVA 或 PATH。"
 	case "启动时恢复最近项目":
 		return "下次启动 JarLens 时恢复上次打开的项目。"
+	case "启动时":
+		return "选择下次启动时恢复最近项目，或回到 Home。"
+	case "关闭时最小化到托盘":
+		return "关闭窗口时保留应用在托盘中运行；可从托盘菜单退出。"
+	case "开机自动启动":
+		return "登录系统时自动启动 JarLens。"
 	case "更新下载源":
 		return "默认下载源为官方源，CNB 适合国内网络环境；切换后检查更新和更新日志均使用所选来源。"
 	case "自动检查更新":

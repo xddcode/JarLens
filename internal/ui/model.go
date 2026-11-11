@@ -103,12 +103,14 @@ type SettingsStore interface {
 
 type Model struct {
 	Theme                Appearance
+	TrayIcon             app.WindowIcon
 	RecentStore          RecentStore
 	SettingsStore        SettingsStore
 	MaximizeWindow       func()
 	RestoreWindow        func()
 	UpdateChecker        func(context.Context, jarlensupdate.Source) (jarlensupdate.Release, error)
 	UpdateReleasesLoader func(context.Context, jarlensupdate.Source, int, int) (jarlensupdate.ReleasePage, error)
+	SetLaunchAtLogin     func(bool) error
 
 	updateRelease            *jarlensupdate.Release
 	updateChecking           bool
@@ -217,6 +219,11 @@ type Model struct {
 	selectingSource     bool
 
 	invalidator           *app.Invalidator
+	application           *app.Application
+	window                *app.Window
+	statusItem            *app.StatusItem
+	EnsureTray            func() bool
+	HideWindow            func()
 	stopSystemAppearance  func()
 	nativeAppearance      app.Appearance
 	nativeAppearanceDirty bool
@@ -714,6 +721,10 @@ func (m *Model) openRepository() {
 }
 
 func (m *Model) close() {
+	if m.statusItem != nil {
+		m.statusItem.Remove()
+		m.statusItem = nil
+	}
 	if m.stopSystemAppearance != nil {
 		m.stopSystemAppearance()
 		m.stopSystemAppearance = nil

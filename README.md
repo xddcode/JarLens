@@ -23,7 +23,7 @@ Users are responsible for ensuring they have the legal right to inspect the rele
 
 - Native desktop rendering without Electron, a browser engine, or an embedded WebView.
 - An OpenIDEA/IntelliJ-style workbench with working Islands Dark and Islands Light themes.
-- Simplified Chinese, English, Japanese, and Korean interface languages with a persistent language selector.
+- Simplified Chinese, Traditional Chinese, English, Japanese, and Korean interface languages with a persistent language selector.
 - A code-first workspace designed for reading, searching, and comparing decompiled Java.
 - Replaceable decompiler engine adapters rather than a UI tied to one engine.
 - Reproducible development, testing, and releases driven entirely through GitHub.
@@ -74,6 +74,7 @@ go tool viva build
 | Multiple document tabs and current source export | Available |
 | XML, JSON, YAML, Manifest, and other UTF-8/UTF-16 text resources | Available |
 | Project filter, source find, and go to line | Available |
+| Startup restoration, close-to-tray, and per-user launch-at-login preferences | Available |
 | Headless UI and real JDK integration tests | Available |
 | Global index, cache, and multi-engine diff | Planned |
 | Managed Java runtime in standard packages | Available |

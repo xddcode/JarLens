@@ -17,7 +17,7 @@ func TestSettingsSelectDismissesOnAnyOutsideClick(t *testing.T) {
 		state   func(*Model) *flex.SelectState
 	}{
 		{name: "theme", page: 1, trigger: 3, scope: settingsTheme, state: func(m *Model) *flex.SelectState { return &m.settingsThemeSelect }},
-		{name: "language", page: 1, trigger: 4, scope: settingsLanguage, state: func(m *Model) *flex.SelectState { return &m.settingsLanguageSelect }},
+		{name: "language", page: 1, trigger: 5, scope: settingsLanguage, state: func(m *Model) *flex.SelectState { return &m.settingsLanguageSelect }},
 		{name: "update source", page: 6, trigger: 2, scope: settingsUpdateSource, state: func(m *Model) *flex.SelectState { return &m.settingsUpdateSourceSelect }},
 		{name: "engine", page: 5, trigger: 3, scope: settingsEngine, state: func(m *Model) *flex.SelectState { return &m.settingsEngineSelect }},
 	}

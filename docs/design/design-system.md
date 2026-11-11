@@ -177,8 +177,15 @@ identity, but workbench selection and focus follow the semantic blue accent.
 
 Theme choice, interface language, UI font, code font and size, Tab width,
 indentation guides, line numbers, current-line highlight, Java executable,
-startup restoration, automatic update checks, and update source persist in
-`settings.json` in the user configuration directory. The settings dialog follows
+startup restoration, close-to-tray behavior, launch at login, automatic update
+checks, and update source persist in `settings.json` in the user configuration
+directory. Startup can restore the most recent project or return to Home. Closing
+to the tray requires a working status item and otherwise falls back to a normal
+close; the tray menu provides explicit Open and Quit actions. Launch at login is
+applied only when that preference is saved, using the current user's Windows Run
+key, a macOS LaunchAgent, or a Linux autostart desktop entry. A failed platform
+update leaves the settings dialog open and does not save the preference. The
+settings dialog follows
 OpenIDEA: a 240-pixel page tree, breadcrumbs with back/forward history, per-page
 Reset, titled section separators, compact form rows, checkboxes, and an inline
 footer error. Its tree groups Appearance and System Settings under Appearance and
@@ -203,10 +210,11 @@ JetBrains Mono at 13 pixels on a character grid. Both are registered only for th
 JarLens process, retain their OFL notices, and use system fallback for scripts the
 fonts do not cover.
 
-The workspace provides Simplified Chinese, English, Japanese, and Korean for
-controls, menus, tooltips, dialogs, settings search, and status messages. The
-shared catalog in `internal/ui/i18n.go` and `internal/ui/i18n_catalog.go` resolves
-text at paint time, so applying a language updates the open workspace immediately.
+The workspace provides Simplified Chinese, Traditional Chinese, English,
+Japanese, and Korean for controls, menus, tooltips, dialogs, settings search, and
+status messages. The shared catalog in `internal/ui/i18n.go`,
+`internal/ui/i18n_catalog.go`, and `internal/ui/i18n_traditional.go` resolves text
+at paint time, so applying a language updates the open workspace immediately.
 Simplified Chinese is the default and fallback for missing translations. Language
 names remain in their native scripts, and release-note content remains in the
 language supplied by its publisher.

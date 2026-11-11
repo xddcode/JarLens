@@ -61,6 +61,8 @@ func main() {
 			return err
 		}
 		model.SyncNativeAppearance()
+		model.TrayIcon = icon
+		model.ConfigureWindow(application, window)
 		model.MaximizeWindow = func() { maximizeWindow(window) }
 		model.RestoreWindow = func() { restoreWindow(window) }
 		path, restore := startupProject(os.Args[1:], recentStore.Load(), preferences.RestoreLastProject)

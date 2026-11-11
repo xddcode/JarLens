@@ -20,6 +20,8 @@ type Settings struct {
 	ShowLineNumbers      bool   `json:"showLineNumbers"`
 	HighlightCurrentLine bool   `json:"highlightCurrentLine"`
 	RestoreLastProject   bool   `json:"restoreLastProject"`
+	CloseToTray          bool   `json:"closeToTray"`
+	LaunchAtLogin        bool   `json:"launchAtLogin"`
 	CheckUpdates         bool   `json:"checkUpdates"`
 	UpdateSource         string `json:"updateSource"`
 }
@@ -64,7 +66,7 @@ func (store *SettingsStore) Load() Settings {
 	if saved.Theme == "light" || saved.Theme == "dark" || saved.Theme == "system" {
 		settings.Theme = saved.Theme
 	}
-	if saved.Language == "zh-CN" || saved.Language == "en" || saved.Language == "ja" || saved.Language == "ko" {
+	if saved.Language == "zh-CN" || saved.Language == "zh-TW" || saved.Language == "en" || saved.Language == "ja" || saved.Language == "ko" {
 		settings.Language = saved.Language
 	}
 	settings.JavaPath = strings.TrimSpace(saved.JavaPath)
@@ -86,6 +88,8 @@ func (store *SettingsStore) Load() Settings {
 	settings.ShowLineNumbers = saved.ShowLineNumbers
 	settings.HighlightCurrentLine = saved.HighlightCurrentLine
 	settings.RestoreLastProject = saved.RestoreLastProject
+	settings.CloseToTray = saved.CloseToTray
+	settings.LaunchAtLogin = saved.LaunchAtLogin
 	if saved.CheckUpdates != nil {
 		settings.CheckUpdates = *saved.CheckUpdates
 	}

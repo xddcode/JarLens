@@ -116,7 +116,9 @@ var (
 	fontPickerClose                 = tree.ID(workbench, "font-picker-close")
 	fontPickerSearch                = tree.ID(workbench, "font-picker-search")
 	fontPickerList                  = tree.ID(workbench, "font-picker-list")
-	settingsRestore                 = tree.ID(workbench, "settings-restore")
+	settingsStartup                 = tree.Sub(workbench, tree.Name("settings-startup"))
+	settingsCloseToTray             = tree.ID(workbench, "settings-close-to-tray")
+	settingsLaunchAtLogin           = tree.ID(workbench, "settings-launch-at-login")
 	settingsCheckUpdates            = tree.ID(workbench, "settings-check-updates")
 	settingsUpdateCheck             = tree.ID(workbench, "settings-update-check")
 	settingsUpdateOpen              = tree.ID(workbench, "settings-update-open")
@@ -151,6 +153,12 @@ func NewConfig(m *Model) app.Config {
 			m.wake()
 		},
 		OnClosed: m.close,
+		OnCloseRequest: func(allow func()) {
+			if m.settings.CloseToTray && m.hideToTray() {
+				return
+			}
+			allow()
+		},
 		WindowControls: func() app.WindowControlsStyle {
 			theme := WorkspaceTheme(m.Theme)
 			return app.WindowControlsStyle{

@@ -9,7 +9,7 @@ func (m *Model) paintSettingsSelectDismissBackdrop(canvas *vivaui.Canvas, bounds
 	case m.settingsThemeSelect.Open:
 		dismiss, focusScope = settingsTheme.At(4), settingsTheme.At(5)
 	case m.settingsLanguageSelect.Open:
-		dismiss, focusScope = settingsLanguage.At(5), settingsLanguage.At(6)
+		dismiss, focusScope = settingsLanguage.At(6), settingsLanguage.At(7)
 	case m.settingsUpdateSourceSelect.Open:
 		dismiss, focusScope = settingsUpdateSource.At(3), settingsUpdateSource.At(4)
 	case m.settingsEngineSelect.Open:

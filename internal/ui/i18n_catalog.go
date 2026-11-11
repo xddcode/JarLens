@@ -2,6 +2,8 @@ package ui
 
 var interfaceTranslations = map[string]map[string]string{
 	languageEnglish: {
+		"打开 JarLens": "Open JarLens", "退出": "Quit", "启动时": "On Startup", "恢复最近项目": "Restore Recent Project", "回到 Home": "Return to Home", "关闭时最小化到托盘": "Minimize to Tray on Close", "开机自动启动": "Launch at Login", "无法设置开机自动启动": "Unable to configure automatic startup",
+		"选择下次启动时恢复最近项目，或回到 Home。": "Choose whether to restore the recent project or return to Home on the next startup.", "关闭窗口时保留应用在托盘中运行；可从托盘菜单退出。": "Keep JarLens running in the tray when the window closes; quit from the tray menu.", "登录系统时自动启动 JarLens。": "Launch JarLens automatically when you log in.",
 		"选择打开的文件": "Select Open File",
 		"浏览...":   "Browse...", "选择 Java 可执行文件": "Choose Java Executable",
 		"：":     ": ",
@@ -32,6 +34,8 @@ var interfaceTranslations = map[string]map[string]string{
 		"暂时无法获取更新日志，请检查网络后重试": "Unable to load release notes. Check your network and try again.", "无法打开版本发布页面": "Unable to open the releases page", "已打开版本发布页面": "Releases page opened", "查看所选来源发布的各版本更新内容": "View release notes published on the selected source", "在官网查看": "View on Website", "刷新更新日志": "Refresh Release Notes", "正在获取更新日志...": "Loading release notes...", "重试": "Retry", "该来源还没有发布正式版本": "No stable releases have been published on this source", "查看 %s 更新日志": "View %s release notes", "当前": "Current", "发布于 ": "Published ", "2006年1月2日": "Jan 2, 2006",
 	},
 	languageJapanese: {
+		"打开 JarLens": "JarLens を開く", "退出": "終了", "启动时": "起動時", "恢复最近项目": "最近のプロジェクトを復元", "回到 Home": "Home に戻る", "关闭时最小化到托盘": "閉じるときにトレイに最小化", "开机自动启动": "ログイン時に自動起動", "无法设置开机自动启动": "自動起動を設定できません",
+		"选择下次启动时恢复最近项目，或回到 Home。": "次回の起動時に最近のプロジェクトを復元するか、Home に戻るかを選択します。", "关闭窗口时保留应用在托盘中运行；可从托盘菜单退出。": "ウィンドウを閉じてもトレイで実行を続けます。トレイメニューから終了できます。", "登录系统时自动启动 JarLens。": "ログイン時に JarLens を自動的に起動します。",
 		"选择打开的文件": "開いているファイルを選択",
 		"浏览...":   "参照...", "选择 Java 可执行文件": "Java 実行ファイルを選択",
 		"：":     "：",
@@ -62,6 +66,8 @@ var interfaceTranslations = map[string]map[string]string{
 		"暂时无法获取更新日志，请检查网络后重试": "リリースノートを取得できません。ネットワークを確認して再試行してください。", "无法打开版本发布页面": "リリースページを開けません", "已打开版本发布页面": "リリースページを開きました", "查看所选来源发布的各版本更新内容": "選択したソースに公開された各バージョンのリリースノートを表示します", "在官网查看": "公式サイトで表示", "刷新更新日志": "リリースノートを更新", "正在获取更新日志...": "リリースノートを取得しています...", "重试": "再試行", "该来源还没有发布正式版本": "このソースにはまだ安定版が公開されていません", "查看 %s 更新日志": "%s のリリースノートを表示", "当前": "現在", "发布于 ": "公開日 ", "2006年1月2日": "2006年1月2日",
 	},
 	languageKorean: {
+		"打开 JarLens": "JarLens 열기", "退出": "종료", "启动时": "시작 시", "恢复最近项目": "최근 프로젝트 복원", "回到 Home": "Home으로 돌아가기", "关闭时最小化到托盘": "닫을 때 트레이로 최소화", "开机自动启动": "로그인 시 자동 시작", "无法设置开机自动启动": "자동 시작을 설정할 수 없습니다",
+		"选择下次启动时恢复最近项目，或回到 Home。": "다음 시작 시 최근 프로젝트를 복원할지 Home으로 돌아갈지 선택합니다.", "关闭窗口时保留应用在托盘中运行；可从托盘菜单退出。": "창을 닫은 후에도 트레이에서 계속 실행하며, 트레이 메뉴에서 종료할 수 있습니다.", "登录系统时自动启动 JarLens。": "로그인할 때 JarLens를 자동으로 시작합니다.",
 		"选择打开的文件": "열린 파일 선택",
 		"浏览...":   "찾아보기...", "选择 Java 可执行文件": "Java 실행 파일 선택",
 		"：":     "：",

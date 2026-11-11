@@ -6,6 +6,11 @@ All notable changes to JarLens are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Traditional Chinese interface localization alongside the existing four languages.
+- Configurable startup restoration, close-to-tray behavior, and per-user launch-at-login integration for Windows, macOS, and Linux.
+
 ## [0.1.0] - 2026-11-10
 
 ### Added

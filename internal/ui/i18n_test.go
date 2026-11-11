@@ -46,7 +46,7 @@ func TestInterfaceTranslationCoverage(t *testing.T) {
 				t.Errorf("%s: invalid translated literal %s", file.Name(), literal.Value)
 				return true
 			}
-			for _, language := range []string{languageEnglish, languageJapanese, languageKorean} {
+			for _, language := range []string{languageTraditionalChinese, languageEnglish, languageJapanese, languageKorean} {
 				if interfaceTranslations[language][source] == "" {
 					t.Errorf("%s: %q has no %s translation", file.Name(), source, language)
 				}
@@ -84,9 +84,10 @@ func TestSettingsLanguageSwitchAndSearch(t *testing.T) {
 		wantFont       string
 		wantQuery      string
 	}{
-		{language: languageEnglish, option: 1, wantSettings: "Settings", wantAppearance: "Appearance", wantFont: "Font", wantQuery: "Code Font"},
-		{language: languageJapanese, option: 2, wantSettings: "設定", wantAppearance: "外観", wantFont: "フォント", wantQuery: "コードフォント"},
-		{language: languageKorean, option: 3, wantSettings: "설정", wantAppearance: "모양", wantFont: "글꼴", wantQuery: "코드 글꼴"},
+		{language: languageTraditionalChinese, option: 1, wantSettings: "設定", wantAppearance: "外觀", wantFont: "字型", wantQuery: "程式碼字型"},
+		{language: languageEnglish, option: 2, wantSettings: "Settings", wantAppearance: "Appearance", wantFont: "Font", wantQuery: "Code Font"},
+		{language: languageJapanese, option: 3, wantSettings: "設定", wantAppearance: "外観", wantFont: "フォント", wantQuery: "コードフォント"},
+		{language: languageKorean, option: 4, wantSettings: "설정", wantAppearance: "모양", wantFont: "글꼴", wantQuery: "코드 글꼴"},
 	}
 	for _, test := range tests {
 		t.Run(test.language, func(t *testing.T) {
@@ -95,7 +96,7 @@ func TestSettingsLanguageSwitchAndSearch(t *testing.T) {
 			driver := newDriver(t, m)
 			defer driver.Close()
 			openSettingsForTest(t, driver)
-			click(t, driver, settingsLanguage.At(4))
+			click(t, driver, settingsLanguage.At(5))
 			click(t, driver, settingsLanguage.At(test.option))
 			click(t, driver, settingsApply)
 			if store.saves != 1 || m.settings.Language != test.language {
@@ -120,6 +121,7 @@ func TestLocalizedUpdateStatus(t *testing.T) {
 		language string
 		want     string
 	}{
+		{language: languageTraditionalChinese, want: "目前已是最新版本"},
 		{language: languageEnglish, want: "You are already using the latest version"},
 		{language: languageJapanese, want: "すでに最新バージョンです"},
 		{language: languageKorean, want: "이미 최신 버전을 사용 중입니다"},
@@ -139,5 +141,22 @@ func TestLocalizedUpdateStatus(t *testing.T) {
 			m.CheckForUpdates(false)
 			pumpUntil(t, driver, func() bool { return m.updateStatus == test.want })
 		})
+	}
+}
+
+func TestTranslationCatalogsCoverTheSameMessages(t *testing.T) {
+	english := interfaceTranslations[languageEnglish]
+	for _, language := range []string{languageTraditionalChinese, languageJapanese, languageKorean} {
+		catalog := interfaceTranslations[language]
+		for source := range english {
+			if catalog[source] == "" {
+				t.Errorf("%s: missing translation for %q", language, source)
+			}
+		}
+		for source := range catalog {
+			if english[source] == "" {
+				t.Errorf("%s: obsolete translation for %q", language, source)
+			}
+		}
 	}
 }
