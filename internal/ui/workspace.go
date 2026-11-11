@@ -211,7 +211,7 @@ func NewConfig(m *Model) app.Config {
 				}
 				return vivaui.EventResult{Handled: true, Repaint: true}
 			case "f":
-				if event.Modifiers&vivaui.ModifierShift != 0 || projectTreeEventTarget(event.Target) {
+				if m.focusProject || event.Modifiers&vivaui.ModifierShift != 0 || projectTreeEventTarget(event.Target) {
 					m.showProjectFilter()
 				} else {
 					m.showSourceFind()
@@ -712,6 +712,9 @@ func (m *Model) paintProjectNode(f *flex.Frame, theme vivaui.Theme, visible arch
 	id := projectNodes.At(node.ID)
 	selected := node.Entry >= 0 && node.Entry == m.selected
 	selectedBackground := theme.Accent
+	if !m.focusProject {
+		selectedBackground = theme.Muted
+	}
 	hoverColor := treeHoverColor(m.Theme)
 	if selected {
 		hoverColor = selectedBackground

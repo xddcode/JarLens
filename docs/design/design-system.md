@@ -227,7 +227,9 @@ its parents only when explicitly requested, centering the target row within the
 tree viewport when space permits. Expand All and Collapse All are icon buttons in
 the same right-aligned project action group. The selected editor tab uses its
 bright focused color only while the source area has focus and a subdued color
-when the project tree has focus. Primary+F targets the focused tree or source
+when the project tree has focus. The selected tree row similarly uses the accent
+color while the tree has focus and a muted color when the editor has focus.
+Primary+F targets the focused tree or source
 area; Primary+Shift+F always opens the project filter. Comments, strings, and unresolved
 names are not links. XML syntax highlighting
 separates tag names, attribute names, quoted values, comments, declarations, and
