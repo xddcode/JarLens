@@ -107,14 +107,17 @@ var cancelGlyph = vivaui.Icon{
 var expandAllGlyph = vivaui.Icon{
 	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
 	Commands: []vivaui.PathCommand{
-		vivaui.MoveTo(12, 5), vivaui.LineTo(12, 19),
-		vivaui.MoveTo(5, 12), vivaui.LineTo(19, 12),
+		vivaui.MoveTo(7, 4), vivaui.LineTo(12, 9), vivaui.LineTo(17, 4),
+		vivaui.MoveTo(7, 11), vivaui.LineTo(12, 16), vivaui.LineTo(17, 11),
 	},
 }
 
 var collapseAllGlyph = vivaui.Icon{
 	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
-	Commands: []vivaui.PathCommand{vivaui.MoveTo(5, 12), vivaui.LineTo(19, 12)},
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(7, 13), vivaui.LineTo(12, 8), vivaui.LineTo(17, 13),
+		vivaui.MoveTo(7, 20), vivaui.LineTo(12, 15), vivaui.LineTo(17, 20),
+	},
 }
 
 var arrowUpGlyph = vivaui.Icon{
