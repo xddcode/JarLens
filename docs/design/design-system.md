@@ -220,9 +220,11 @@ text resources scale their existing leading-indent levels. Exports match the
 displayed indentation. A quiet source-provenance banner names the decompiler and version.
 Source find highlights its matches. Resolvable class names in Java and
 `META-INF/services` documents are blue, underlined links: clicking opens the target
-class, selects its declaration, and reveals the target in the project tree. Opening
-or switching documents expands the tree's parents and scrolls the node into view.
-Comments, strings, and unresolved names are not links. XML syntax highlighting
+class, selects its declaration, and reveals the target in the project tree.
+Switching tabs does not move the tree selection or scroll position. The Select
+Open File action beside the project filter reveals the active document and expands
+its parents only when explicitly requested. Comments, strings, and unresolved
+names are not links. XML syntax highlighting
 separates tag names, attribute names, quoted values, comments, declarations, and
 entities rather than coloring the entire angle-bracket block. Folding remains future work.
 Decompiled code is identified as generated output; minimap and decorative effects

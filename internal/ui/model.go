@@ -452,7 +452,6 @@ func (m *Model) activateDocument(index int) {
 	m.storeCurrentDocument()
 	doc := m.documents[index]
 	m.active = index
-	m.selected = doc.entryID
 	m.source = doc.source
 	m.sourceInfo = doc.sourceInfo
 	m.editor = doc.editor
@@ -460,7 +459,6 @@ func (m *Model) activateDocument(index int) {
 	m.diagnostic = doc.diagnostic
 	m.status = m.tf("已打开 %s", doc.name)
 	m.syncActivePane()
-	m.revealProjectEntry(doc.entryID)
 }
 
 func (m *Model) revealProjectEntry(entryID int) {

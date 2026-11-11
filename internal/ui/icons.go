@@ -18,6 +18,21 @@ var searchGlyph = vivaui.Icon{
 	},
 }
 
+var locateGlyph = vivaui.Icon{
+	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	Commands: []vivaui.PathCommand{
+		vivaui.MoveTo(19, 12),
+		vivaui.CubicTo(19, 16, 16, 19, 12, 19),
+		vivaui.CubicTo(8, 19, 5, 16, 5, 12),
+		vivaui.CubicTo(5, 8, 8, 5, 12, 5),
+		vivaui.CubicTo(16, 5, 19, 8, 19, 12), vivaui.ClosePath(),
+		vivaui.MoveTo(12, 3), vivaui.LineTo(12, 7),
+		vivaui.MoveTo(12, 17), vivaui.LineTo(12, 21),
+		vivaui.MoveTo(3, 12), vivaui.LineTo(7, 12),
+		vivaui.MoveTo(17, 12), vivaui.LineTo(21, 12),
+	},
+}
+
 var infoGlyph = vivaui.Icon{
 	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
 	Commands: []vivaui.PathCommand{

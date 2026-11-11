@@ -423,6 +423,34 @@ func TestMultipleDocumentsKeepIndependentState(t *testing.T) {
 	}
 }
 
+func TestTabSwitchDoesNotLocateProjectUntilRequested(t *testing.T) {
+	engine := &fakeEngine{sources: map[string]string{
+		"example/Hello.class": "public class Hello {}\n",
+		"example/World.class": "public class World {}\n",
+	}}
+	m := &Model{engine: engine}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.OpenPath(writeMultiClassJAR(t))
+	pumpUntil(t, driver, func() bool { return m.workspace != nil })
+	packageID := findNodeID(t, m, "example")
+	click(t, driver, projectNodes.At(packageID))
+	click(t, driver, projectNodes.At(findNodeID(t, m, "Hello.class")))
+	pumpUntil(t, driver, func() bool { return m.source != "" })
+	click(t, driver, projectNodes.At(findNodeID(t, m, "World.class")))
+	pumpUntil(t, driver, func() bool { return m.active == 1 })
+	m.expanded[packageID] = false
+
+	click(t, driver, editorTabs.At(0))
+	if m.selected == 0 || m.expanded[packageID] {
+		t.Fatal("switching tabs located the project tree without an explicit request")
+	}
+	click(t, driver, projectLocate)
+	if m.selected != 0 || !m.expanded[packageID] {
+		t.Fatal("locate did not reveal the active document in the project tree")
+	}
+}
+
 func rightClickControl(t *testing.T, driver *app.Driver, id ui.ID) {
 	t.Helper()
 	for _, hit := range driver.Snapshot().Hits {
