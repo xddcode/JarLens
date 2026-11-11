@@ -211,10 +211,10 @@ func NewConfig(m *Model) app.Config {
 				}
 				return vivaui.EventResult{Handled: true, Repaint: true}
 			case "f":
-				if event.Modifiers&vivaui.ModifierShift != 0 {
-					m.filterOpen = true
+				if event.Modifiers&vivaui.ModifierShift != 0 || projectTreeEventTarget(event.Target) {
+					m.showProjectFilter()
 				} else {
-					m.findOpen = true
+					m.showSourceFind()
 				}
 				return vivaui.EventResult{Handled: true, Repaint: true}
 			case "g":
@@ -336,6 +336,9 @@ func NewConfig(m *Model) app.Config {
 			m.sourcePointer = vivaui.Point{X: event.X, Y: event.Y}
 			pane := m.paneForSource(event.Target)
 			if event.Kind == vivaui.PointerDown && pane != nil {
+				m.focusProject = false
+			}
+			if event.Kind == vivaui.PointerDown && pane != nil {
 				m.activatePane(pane)
 			}
 			m.sourcePointerInside = pane != nil && pane == m.activePane && event.Kind != vivaui.PointerExit
@@ -392,11 +395,13 @@ func NewConfig(m *Model) app.Config {
 	}
 
 	config.Paint = func(canvas *vivaui.Canvas, size vivaui.Size) {
-		if m.findOpen {
+		if m.findOpen && m.findFocus {
 			canvas.RequestFocus(sourceFind)
+			m.findFocus = false
 		}
-		if m.filterOpen {
+		if m.filterOpen && m.filterFocus {
 			canvas.RequestFocus(projectFilter)
+			m.filterFocus = false
 		}
 		if m.focusSource {
 			target := sourceEditor
@@ -520,7 +525,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 			} else {
 				f.Row().Grow(1).Children(func() {
 					f.Row().Width(6)
-					f.Column().Width(m.split.Pos).MarginSides(6, 0, 6, 0).Radius(10).Background(theme.Background).Children(func() {
+					f.Column().Width(m.split.Pos).MarginSides(6, 0, 6, 0).Radius(10).Background(theme.Background).Stroke(1, focusGlow(theme, projectTreeEventTarget(canvas.Focused()))).Children(func() {
 						f.Row().Height(40).PadX(8).Gap(8).Items(flex.Center).Justify(flex.Between).Children(func() {
 							projectTitleBox = f.Row().Height(24).PadX(4).Gap(4).Items(flex.Center).Radius(4).Hover(flex.Look{}.Background(theme.Hover)).
 								HitWith(projectTitle, m.t("项目"), vivaui.HitOptions{Role: vivaui.RoleButton, Hint: m.t("项目视图"), Expanded: m.projectMenuOpen, Cursor: vivaui.PointerCursorHand})
@@ -534,13 +539,24 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 							if projectTitleBox.Clicked() {
 								m.projectMenuOpen = !m.projectMenuOpen
 							}
+							if tinyIconButton(f, projectExpandAll, m.t("展开全部"), expandAllGlyph, theme, true) {
+								m.expandAllProjects()
+							}
+							if tinyIconButton(f, projectCollapseAll, m.t("折叠全部"), collapseAllGlyph, theme, true) {
+								m.collapseAllProjects()
+							}
 							if tinyIconButton(f, projectLocate, m.t("选择打开的文件"), locateGlyph, theme, m.currentDocument() != nil) {
 								if doc := m.currentDocument(); doc != nil {
 									m.revealProjectEntry(doc.entryID)
 								}
 							}
 							if tinyIconButton(f, projectSearch, m.t("显示筛选"), searchGlyph, theme, true) {
-								m.filterOpen = !m.filterOpen
+								if m.filterOpen {
+									m.filterOpen = false
+									m.filterFocus = false
+								} else {
+									m.showProjectFilter()
+								}
 							}
 						})
 						if m.filterOpen {
@@ -552,7 +568,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 						projectTreeBox = m.paintProjectTree(f, theme, treeContentWidth, treeScrollX)
 					})
 					splitterSlot = f.Splitter(projectSplitter, &m.split).Width(6).Mins(180, 320)
-					f.Column().Grow(1).MarginSides(6, 6, 6, 0).Radius(10).Background(theme.Background).Children(func() {
+					f.Column().Grow(1).MarginSides(6, 6, 6, 0).Radius(10).Background(theme.Background).Stroke(1, focusGlow(theme, m.editorAreaFocused(canvas))).Children(func() {
 						sourcePanes, editorMenuPanes = m.paintEditorPanes(f, theme)
 					})
 				})
@@ -715,6 +731,7 @@ func (m *Model) paintProjectNode(f *flex.Frame, theme vivaui.Theme, visible arch
 		f.Text(label).FontSize(13).Shrink(0).Color(theme.AccentForeground)
 	})
 	if row.Clicked() {
+		f.Canvas().RequestFocus(id)
 		f.Canvas().AfterPaint(func() { m.activateNode(node) })
 	}
 }
@@ -736,6 +753,7 @@ func (m *Model) paintNodeDisclosure(f *flex.Frame, node archive.Node, theme viva
 }
 
 func (m *Model) activateNode(node archive.Node) {
+	m.focusProject = true
 	switch node.Kind {
 	case archive.NodePackage:
 		m.expanded[node.ID] = !m.expanded[node.ID]
@@ -746,8 +764,12 @@ func (m *Model) activateNode(node archive.Node) {
 	}
 }
 
+func (m *Model) editorAreaFocused(canvas *vivaui.Canvas) bool {
+	return canvas.Focused() == sourceFind || m.paneForSource(canvas.Focused()) != nil
+}
+
 func projectTreeEventTarget(id vivaui.ID) bool {
-	if id == projectTree || id == projectHorizontalScrollbar {
+	if id == projectTree || id == projectHorizontalScrollbar || id == projectFilter || id == projectSearch || id == projectLocate || id == projectExpandAll || id == projectCollapseAll || id == projectTitle {
 		return true
 	}
 	if _, ok := id.In(projectNodes); ok {
@@ -903,11 +925,7 @@ func (m *Model) paintTabContextMenu(canvas *vivaui.Canvas, theme vivaui.Theme, v
 
 func (m *Model) paintProjectMenu(canvas *vivaui.Canvas, theme vivaui.Theme, viewport, anchor vivaui.Rect) {
 	menuTheme := contextMenuTheme(theme, m.Theme)
-	items := []components.ContextMenuItem{
-		{ID: projectExpandAll, Label: m.t("展开全部"), Disabled: m.workspace == nil},
-		{ID: projectCollapseAll, Label: m.t("折叠全部"), Disabled: m.workspace == nil},
-		{ID: projectFilterMenu, Label: m.t("筛选类和资源")},
-	}
+	items := []components.ContextMenuItem{{ID: projectFilterMenu, Label: m.t("筛选类和资源")}}
 	size := vivaui.Size{Width: 180, Height: float32(len(items))*24 + 12}
 	content, _ := components.PlaceOverlay(anchor, size, viewport, components.OverlayPlacement{
 		Side: components.OverlayBottom, Align: components.OverlayAlignStart, SideOffset: 4, Margin: 6,
@@ -915,28 +933,29 @@ func (m *Model) paintProjectMenu(canvas *vivaui.Canvas, theme vivaui.Theme, view
 	menu := components.BeginContextMenu(canvas, menuTheme, content, components.ContextMenuOptions{
 		Layer: 4, Scope: projectMenu, DismissID: projectMenuDismiss, Viewport: viewport, RowHeight: 24,
 	})
-	canvas.SetInitialFocus(projectExpandAll)
+	canvas.SetInitialFocus(projectFilterMenu)
 	for _, item := range items {
 		menu.AddItem(item)
 	}
 	menu.End()
-	switch {
-	case canvas.Clicked(projectMenuDismiss):
+	if canvas.Clicked(projectMenuDismiss) {
 		m.projectMenuOpen = false
-	case canvas.Clicked(projectExpandAll):
-		for _, node := range m.workspace.Tree.Nodes {
-			if len(node.Children) > 0 {
-				m.expanded[node.ID] = true
-			}
-		}
-		m.projectMenuOpen = false
-	case canvas.Clicked(projectCollapseAll):
-		m.expanded = make(map[int]bool)
-		m.projectMenuOpen = false
-	case canvas.Clicked(projectFilterMenu):
-		m.filterOpen = true
+	} else if canvas.Clicked(projectFilterMenu) {
+		m.showProjectFilter()
 		m.projectMenuOpen = false
 	}
+}
+
+func (m *Model) expandAllProjects() {
+	for _, node := range m.workspace.Tree.Nodes {
+		if len(node.Children) > 0 {
+			m.expanded[node.ID] = true
+		}
+	}
+}
+
+func (m *Model) collapseAllProjects() {
+	m.expanded = make(map[int]bool)
 }
 
 func (m *Model) paintProjectSwitcher(canvas *vivaui.Canvas, theme vivaui.Theme, viewport, anchor vivaui.Rect) {

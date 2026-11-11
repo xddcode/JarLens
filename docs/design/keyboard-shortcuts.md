@@ -14,7 +14,7 @@ Shortcuts do not override text editing expectations.
 | Command palette | Primary+Shift+P | M1 |
 | Open archive | Primary+O | Available |
 | Close tab | Primary+W | Available |
-| Find in source | Primary+F | Available |
+| Find in the focused project tree or source editor | Primary+F | Available |
 | Show project filter | Primary+Shift+F | Available |
 | Go to line | Primary+G | Available |
 | Settings | Primary+Alt+S | Available |

@@ -175,8 +175,10 @@ type Model struct {
 	status          string
 	diagnostic      string
 	filterOpen      bool
+	filterFocus     bool
 	projectMenuOpen bool
 	findOpen        bool
+	findFocus       bool
 	findQuery       string
 	findSource      string
 	findMatches     []text.Span
@@ -185,6 +187,7 @@ type Model struct {
 	tabsMenuOpen    bool
 	tabsMenuPane    *editorPane
 	focusSource     bool
+	focusProject    bool
 	focusPane       *editorPane
 
 	paneRoot          *editorPane
@@ -452,6 +455,7 @@ func (m *Model) activateDocument(index int) {
 	m.storeCurrentDocument()
 	doc := m.documents[index]
 	m.active = index
+	m.focusProject = false
 	m.source = doc.source
 	m.sourceInfo = doc.sourceInfo
 	m.editor = doc.editor
