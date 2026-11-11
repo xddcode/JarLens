@@ -50,6 +50,17 @@ runs outside Paint, reports through an invalidator, and is copied to the UI mode
 on the window thread. Every task has a context, a terminal state, and bounded
 output. Paint never starts a goroutine or blocks on a process.
 
+## Update model
+
+`internal/update` separates release discovery from signed-package installation.
+The UI resolves a Viva Ed25519-signed feed on a background task and renders
+Markdown notes. Only a registered, writable per-user Windows installation can
+start a download. Progress and cancellation cross into the model through the
+invalidator; Viva verifies the package length and SHA-256 again before its helper
+runs the NSIS installer after the application quits. Other installation types
+retain manual downloads. The release workflow signs the feed but never exposes
+its private key to the application repository.
+
 ## Engine model
 
 Engines are built in, not dynamically loaded. An engine request carries an

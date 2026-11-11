@@ -75,6 +75,7 @@ go tool viva build
 | XML, JSON, YAML, Manifest, and other UTF-8/UTF-16 text resources | Available |
 | Project filter, source find, and go to line | Available |
 | Startup restoration, close-to-tray, and per-user launch-at-login preferences | Available |
+| Signed one-click updates for registered per-user Windows installations | Available |
 | Headless UI and real JDK integration tests | Available |
 | Global index, cache, and multi-engine diff | Planned |
 | Managed Java runtime in standard packages | Available |

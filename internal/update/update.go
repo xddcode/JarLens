@@ -1,5 +1,6 @@
-// Package update reads the published release feed. It never downloads or executes
-// an update; the user chooses whether to open the release page.
+// Package update reads published releases. It downloads and installs only a
+// signed package after the user explicitly chooses to update; manual download
+// remains available when in-place installation is unsupported.
 package update
 
 import (

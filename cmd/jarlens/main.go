@@ -9,6 +9,7 @@ import (
 	"github.com/vivaui/viva/ui"
 	jarlensassets "github.com/xddcode/jarlens/assets"
 	jarlensui "github.com/xddcode/jarlens/internal/ui"
+	jarlensupdate "github.com/xddcode/jarlens/internal/update"
 	jarlensworkspace "github.com/xddcode/jarlens/internal/workspace"
 )
 
@@ -63,6 +64,7 @@ func main() {
 		model.SyncNativeAppearance()
 		model.TrayIcon = icon
 		model.ConfigureWindow(application, window)
+		model.UpdateInstaller = jarlensupdate.NewInstaller(application.Quit)
 		model.MaximizeWindow = func() { maximizeWindow(window) }
 		model.RestoreWindow = func() { restoreWindow(window) }
 		path, restore := startupProject(os.Args[1:], recentStore.Load(), preferences.RestoreLastProject)

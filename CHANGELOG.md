@@ -6,6 +6,15 @@ All notable changes to JarLens are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Signed one-click updates for registered per-user Windows installations, with download progress, cancellation, verification, silent installation, and restart.
+- Ed25519-signed release feeds and install-time package verification, with manual-download fallback for unsupported installations.
+
+### Changed
+
+- Render release notes as Markdown in the update dialog in all five interface languages.
+
 ## [0.2.0] - 2026-11-11
 
 ### Added

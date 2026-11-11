@@ -51,6 +51,24 @@ Windows, macOS, and Linux artifacts, collects an SBOM and notices, creates a dra
 GitHub Release, generates SHA-256 checksums, and verifies the artifact set before
 publication.
 
+## Automatic updates
+
+`VIVA_UPDATE_KEY` is a required repository Actions secret containing the base64
+Ed25519 private key. Only its public key is committed, in
+`internal/update/install.go`. The publish job runs `viva feed` after all packages
+arrive, producing `latest.json` and `latest.json.sig` in the same release. Their
+asset URLs use the stable `releases/latest/download` address. The complete release
+contains 25 assets, including these two feed files. Windows setup files use the
+Viva-compatible `jarlens-<version>-windows-<arch>-setup.exe` name so the feed
+selects NSIS rather than a portable archive.
+
+The app offers in-place updates only for registered, writable per-user Windows
+installations. It verifies the signed feed and exact package bytes before running
+the NSIS installer silently and restarting. Portable, development, system-wide,
+and non-Windows installations keep the manual download action. Never print or
+commit the private key; rotate it through the configured public-key list if it is
+ever exposed.
+
 For a prerelease, keep `[app] version` numeric because Viva's package manifest does
 not accept a suffix. Tag `v<version>-beta.<n>` (or another prerelease suffix) and
 commit notes under that full tag version. The workflow validates the numeric base,
