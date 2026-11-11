@@ -11,7 +11,7 @@ target from verified product support.
 
 ## Runtime and file formats
 
-- Go 1.26.10 or newer is required to build from source.
+- Go 1.26.11 or newer is required to build from source.
 - Viva is pinned to v0.5.1 for current native rendering, text measurement,
   input handling, and component behavior.
 - JAR and standalone Class opening are implemented with bounded entry reads.

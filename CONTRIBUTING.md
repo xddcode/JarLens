@@ -15,7 +15,7 @@ Small documentation and obvious defect fixes still need a pull request and CI.
 
 ## Development setup
 
-Use Go 1.26.10 or newer. Dependencies, including the Viva command, are pinned by
+Use Go 1.26.11 or newer. Dependencies, including the Viva command, are pinned by
 the Go module. A sibling Viva checkout is not required. For local Viva
 co-development, use an untracked `go.work`; do not commit a local `replace`
 directive.

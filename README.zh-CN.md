@@ -3,7 +3,7 @@
 [![CI](https://github.com/xddcode/jarlens/actions/workflows/ci.yml/badge.svg)](https://github.com/xddcode/jarlens/actions/workflows/ci.yml)
 [![集成测试](https://github.com/xddcode/jarlens/actions/workflows/integration.yml/badge.svg)](https://github.com/xddcode/jarlens/actions/workflows/integration.yml)
 [![许可证](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/Go-1.26.10%2B-00ADD8.svg)](go.mod)
+[![Go](https://img.shields.io/badge/Go-1.26.11%2B-00ADD8.svg)](go.mod)
 
 **[English](README.md) | 简体中文**
 
@@ -36,7 +36,7 @@ JarLens 仅用于互操作分析、调试、学习和合法安全研究，与被
 
 ## 从源码构建
 
-环境要求：Go 1.26.10 或更高版本、Viva 支持的操作系统，以及可通过 `java` 命令访问的 Java 11+ 运行时。
+环境要求：Go 1.26.11 或更高版本、Viva 支持的操作系统，以及可通过 `java` 命令访问的 Java 11+ 运行时。
 
 ```sh
 git clone https://gitee.com/xddcode_admin/jar-lens.git
