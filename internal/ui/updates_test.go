@@ -170,7 +170,7 @@ func updateInstallModel(installer *fakeUpdateInstaller, opened *string) *Model {
 		UpdateChecker: func(context.Context, jarlensupdate.Source) (jarlensupdate.Release, error) {
 			return jarlensupdate.Release{Version: "9.9.9", URL: "https://example.com/release", Notes: "## 中文\n\n- 新功能"}, nil
 		},
-		UpdateDownloadResolver: func(context.Context, string) (*jarlensupdate.Download, error) {
+		UpdateDownloadResolver: func(context.Context, jarlensupdate.Source, string) (*jarlensupdate.Download, error) {
 			return &jarlensupdate.Download{}, nil
 		},
 		UpdateInstaller: installer,
@@ -267,7 +267,7 @@ func TestUpdateInstallUnsupportedKeepsManualDownload(t *testing.T) {
 	installer := &fakeUpdateInstaller{reason: jarlensupdate.InstallNotUserInstall}
 	m := updateInstallModel(installer, &opened)
 	resolved := false
-	m.UpdateDownloadResolver = func(context.Context, string) (*jarlensupdate.Download, error) {
+	m.UpdateDownloadResolver = func(context.Context, jarlensupdate.Source, string) (*jarlensupdate.Download, error) {
 		resolved = true
 		return &jarlensupdate.Download{}, nil
 	}
@@ -288,7 +288,7 @@ func TestUpdateInstallMissingSignedPackageFallsBack(t *testing.T) {
 	opened := ""
 	installer := &fakeUpdateInstaller{}
 	m := updateInstallModel(installer, &opened)
-	m.UpdateDownloadResolver = func(context.Context, string) (*jarlensupdate.Download, error) {
+	m.UpdateDownloadResolver = func(context.Context, jarlensupdate.Source, string) (*jarlensupdate.Download, error) {
 		return nil, jarlensupdate.ErrInstallUnavailable
 	}
 	driver := newDriver(t, m)
@@ -297,5 +297,24 @@ func TestUpdateInstallMissingSignedPackageFallsBack(t *testing.T) {
 	pumpUntil(t, driver, func() bool { return m.updateDialogOpen })
 	if hasHit(driver, updateInstall, "立即更新") || !shows(driver, "签名更新包") {
 		t.Fatal("missing signed package did not retain the manual fallback")
+	}
+}
+
+func TestUpdateInstallResolverUsesSelectedCNBSource(t *testing.T) {
+	opened := ""
+	installer := &fakeUpdateInstaller{}
+	m := updateInstallModel(installer, &opened)
+	var resolved jarlensupdate.Source
+	m.UpdateDownloadResolver = func(_ context.Context, source jarlensupdate.Source, _ string) (*jarlensupdate.Download, error) {
+		resolved = source
+		return nil, jarlensupdate.ErrInstallUnavailable
+	}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	m.settings.UpdateSource = "cnb"
+	m.CheckForUpdates(true)
+	pumpUntil(t, driver, func() bool { return m.updateDialogOpen })
+	if resolved != jarlensupdate.SourceCNB {
+		t.Fatalf("download resolver source = %q, want CNB", resolved)
 	}
 }

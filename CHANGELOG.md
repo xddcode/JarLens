@@ -10,6 +10,11 @@ All notable changes to JarLens are documented here. The format follows
 
 - Signed one-click updates for registered per-user Windows installations, with download progress, cancellation, verification, silent installation, and restart.
 - Ed25519-signed release feeds and install-time package verification, with manual-download fallback for unsupported installations.
+- End-to-end CNB automatic updates with CNB-specific signed feeds and package URLs.
+
+### Fixed
+
+- Parse CNB's actual release-list schema so stable releases and release history appear instead of stopping at beta.3.
 
 ### Changed
 

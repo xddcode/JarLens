@@ -42,7 +42,7 @@ func (m *Model) CheckForUpdates(automatic bool) {
 				if resolver == nil {
 					resolver = jarlensupdate.ResolveDownload
 				}
-				result.download, result.downloadErr = resolver(ctx, release.Version)
+				result.download, result.downloadErr = resolver(ctx, source, release.Version)
 			}
 		}
 		m.publish(result)

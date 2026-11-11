@@ -56,11 +56,14 @@ publication.
 `VIVA_UPDATE_KEY` is a required repository Actions secret containing the base64
 Ed25519 private key. Only its public key is committed, in
 `internal/update/install.go`. The publish job runs `viva feed` after all packages
-arrive, producing `latest.json` and `latest.json.sig` in the same release. Their
-asset URLs use the stable `releases/latest/download` address. The complete release
-contains 25 assets, including these two feed files. Windows setup files use the
-Viva-compatible `jarlens-<version>-windows-<arch>-setup.exe` name so the feed
-selects NSIS rather than a portable archive.
+arrive. GitHub uses `latest.json` and `latest.json.sig` with the stable
+`releases/latest/download` asset URLs. CNB uses `cnb-latest.json` and
+`cnb-latest.json.sig`, with assets and notes pinned to the CNB release tag. Both
+feeds are verified with the application's embedded public key before upload. A
+stable release contains 27 assets, including these four feed files; prereleases
+do not publish stable update feeds. Windows
+setup files use the Viva-compatible `jarlens-<version>-windows-<arch>-setup.exe`
+name so each feed selects NSIS rather than a portable archive.
 
 The app offers in-place updates only for registered, writable per-user Windows
 installations. It verifies the signed feed and exact package bytes before running
@@ -78,9 +81,10 @@ Release as a prerelease instead of latest stable.
 ## CNB mirror
 
 The `Mirror to CNB` workflow pushes `main` and tags to `xddcode/JarLens` on CNB.
-After a GitHub Release is published or edited, a separate job uses the pinned
-`mpgrm` Linux amd64 release to synchronize its metadata, notes, and assets. The
-workflow verifies the tool archive with SHA-256 before running it.
+After the GitHub Release is published, the release workflow dispatches CNB
+synchronization automatically. The job uses the pinned `mpgrm` Linux amd64 release
+to synchronize metadata, notes, and all assets, including the CNB-specific feed.
+The workflow verifies the tool archive with SHA-256 before running it.
 
 Configure `CNB_USERNAME` and `CNB_TOKEN` in GitHub Actions secrets. The token needs
 repository write access and Release read/write access on CNB. Release

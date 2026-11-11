@@ -125,6 +125,29 @@ type releasePayload struct {
 	Latest      bool   `json:"is_latest"`
 }
 
+func (payload *releasePayload) UnmarshalJSON(data []byte) error {
+	type alias releasePayload
+	decoded := struct {
+		*alias
+		TagRef       string `json:"tag_ref"`
+		IsDraft      *bool  `json:"is_draft"`
+		IsPrerelease *bool  `json:"is_prerelease"`
+	}{alias: (*alias)(payload)}
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	if payload.Tag == "" {
+		payload.Tag = strings.TrimPrefix(decoded.TagRef, "refs/tags/")
+	}
+	if decoded.IsDraft != nil {
+		payload.Draft = *decoded.IsDraft
+	}
+	if decoded.IsPrerelease != nil {
+		payload.Prerelease = *decoded.IsPrerelease
+	}
+	return nil
+}
+
 func readGitHubReleases(response *http.Response, page, pageSize int) (ReleasePage, error) {
 	var body []releasePayload
 	if err := json.NewDecoder(io.LimitReader(response.Body, 4<<20)).Decode(&body); err != nil {

@@ -201,7 +201,9 @@ publication dates, refresh, and load-more controls. GitHub uses its public relea
 API; CNB reads the public release page without requiring a user token. Release
 notes use Viva's Markdown view rather than literal Markdown text. Registered,
 writable per-user Windows installations offer Update Now with progress,
-cancellation, verification, silent installation, and restart. Development,
+cancellation, verification, silent installation, and restart. GitHub and CNB each
+carry their own signed feed and package URLs; the selected source is used for the
+entire update, with manual download retained if that mirror is unavailable. Development,
 portable, non-Windows, read-only, and system-wide installations retain the manual
 download action with a reason. Downloads and installations happen only after a
 user click; checksum, signature, or launch failures leave the old version in place.

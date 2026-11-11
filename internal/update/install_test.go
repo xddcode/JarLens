@@ -152,15 +152,27 @@ func TestPublishedFeedSignature(t *testing.T) {
 	if directory == "" {
 		t.Skip("set JARLENS_UPDATE_FEED_DIR to verify a release feed")
 	}
-	manifest, err := os.ReadFile(filepath.Join(directory, "latest.json"))
-	if err != nil {
-		t.Fatal(err)
+	for _, name := range []string{"latest.json", "cnb-latest.json"} {
+		manifest, err := os.ReadFile(filepath.Join(directory, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		signature, err := os.ReadFile(filepath.Join(directory, name+".sig"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !VerifyReleaseFeed(manifest, signature) {
+			t.Fatalf("%s does not verify with the application's public key", name)
+		}
 	}
-	signature, err := os.ReadFile(filepath.Join(directory, "latest.json.sig"))
-	if err != nil {
-		t.Fatal(err)
+}
+
+func TestInstallFeedForSource(t *testing.T) {
+	if got := InstallFeedForSource(SourceGitHub, "9.9.9"); got != InstallFeed {
+		t.Fatalf("GitHub feed = %q", got)
 	}
-	if !VerifyReleaseFeed(manifest, signature) {
-		t.Fatal("release feed does not verify with the application's public key")
+	want := CNBReleases + "/download/v9.9.9/cnb-latest.json"
+	if got := InstallFeedForSource(SourceCNB, "9.9.9"); got != want {
+		t.Fatalf("CNB feed = %q, want %q", got, want)
 	}
 }
