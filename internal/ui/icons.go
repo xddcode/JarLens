@@ -104,19 +104,20 @@ var cancelGlyph = vivaui.Icon{
 	},
 }
 
+// Expand/collapse all: OpenIDEA / IntelliJ Platform, Apache-2.0.
 var expandAllGlyph = vivaui.Icon{
-	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	ViewBox: 16, Stroke: 1, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
 	Commands: []vivaui.PathCommand{
-		vivaui.MoveTo(7, 4), vivaui.LineTo(12, 9), vivaui.LineTo(17, 4),
-		vivaui.MoveTo(7, 11), vivaui.LineTo(12, 16), vivaui.LineTo(17, 11),
+		vivaui.MoveTo(4.5, 5.5), vivaui.LineTo(8, 2), vivaui.LineTo(11.5, 5.5),
+		vivaui.MoveTo(4.5, 10.5), vivaui.LineTo(8, 14), vivaui.LineTo(11.5, 10.5),
 	},
 }
 
 var collapseAllGlyph = vivaui.Icon{
-	ViewBox: 24, Stroke: 2, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
+	ViewBox: 16, Stroke: 1, Cap: vivaui.CapRound, Join: vivaui.JoinRound,
 	Commands: []vivaui.PathCommand{
-		vivaui.MoveTo(7, 13), vivaui.LineTo(12, 8), vivaui.LineTo(17, 13),
-		vivaui.MoveTo(7, 20), vivaui.LineTo(12, 15), vivaui.LineTo(17, 20),
+		vivaui.MoveTo(4.5, 2.5), vivaui.LineTo(8, 6), vivaui.LineTo(11.5, 2.5),
+		vivaui.MoveTo(4.5, 13.5), vivaui.LineTo(8, 10), vivaui.LineTo(11.5, 13.5),
 	},
 }
 
