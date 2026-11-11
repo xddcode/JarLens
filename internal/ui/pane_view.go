@@ -112,7 +112,7 @@ func (m *Model) paintEditorHeaderForPane(f *flex.Frame, theme vivaui.Theme, pane
 	if len(documents) == 0 {
 		return flex.Box{}
 	}
-	selectedBackground, selectedBorder, hoverBackground := editorTabColors(m.Theme)
+	selectedBackground, selectedBorder, hoverBackground := editorTabColors(m.Theme, !m.focusProject)
 	var more flex.Box
 	f.Row().Height(40).PadX(4).Gap(2).Items(flex.Center).Children(func() {
 		for index, doc := range documents {

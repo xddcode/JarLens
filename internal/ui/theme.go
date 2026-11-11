@@ -76,11 +76,18 @@ func lightTheme() vivaui.Theme {
 	return theme
 }
 
-func editorTabColors(appearance Appearance) (background, border, hover vivaui.Color) {
+func editorTabColors(appearance Appearance, focused ...bool) (background, border, hover vivaui.Color) {
+	isFocused := len(focused) == 0 || focused[0]
 	if appearance == AppearanceLight {
-		return vivaui.RGB24(0xe3ebfe), vivaui.RGB24(0xa7c5ff), vivaui.RGBA(0, 0, 0, 0.07)
+		if isFocused {
+			return vivaui.RGB24(0xe3ebfe), vivaui.RGB24(0xa7c5ff), vivaui.RGBA(0, 0, 0, 0.07)
+		}
+		return vivaui.RGB24(0xf7f8f9), vivaui.RGB24(0xaeb3c2), vivaui.RGBA(0, 0, 0, 0.07)
 	}
-	return vivaui.RGB24(0x233558), vivaui.RGB24(0x2e4d89), vivaui.RGBA(255, 255, 255, 0.09)
+	if isFocused {
+		return vivaui.RGB24(0x233558), vivaui.RGB24(0x2e4d89), vivaui.RGBA(255, 255, 255, 0.09)
+	}
+	return vivaui.RGB24(0x2b2d31), vivaui.RGB24(0x55585e), vivaui.RGBA(255, 255, 255, 0.04)
 }
 
 func editorColors(appearance Appearance) (foreground, lineNumbers, selection, selectionForeground vivaui.Color) {
@@ -136,16 +143,6 @@ func tabActionsColor(appearance Appearance) vivaui.Color {
 		return vivaui.RGB24(0xa56906)
 	}
 	return vivaui.RGB24(0xf2c55c)
-}
-
-func focusGlow(theme vivaui.Theme, focused bool) vivaui.Color {
-	color := theme.Primary
-	if focused {
-		color.Alpha = 0.24
-	} else {
-		color.Alpha = 0
-	}
-	return color
 }
 
 func setWorkspaceMetrics(theme *vivaui.Theme) {

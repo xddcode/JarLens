@@ -211,7 +211,7 @@ func NewConfig(m *Model) app.Config {
 				}
 				return vivaui.EventResult{Handled: true, Repaint: true}
 			case "f":
-				if event.Modifiers&vivaui.ModifierShift != 0 || projectTreeEventTarget(event.Target) {
+				if m.focusProject || event.Modifiers&vivaui.ModifierShift != 0 || projectTreeEventTarget(event.Target) {
 					m.showProjectFilter()
 				} else {
 					m.showSourceFind()
@@ -325,6 +325,9 @@ func NewConfig(m *Model) app.Config {
 					}
 					return vivaui.EventResult{Handled: true, Repaint: true}
 				}
+			}
+			if event.Kind == vivaui.PointerDown && m.workspace != nil && !m.homeVisible && !m.settingsOpen {
+				m.focusProject = event.X <= m.split.Pos+12
 			}
 			if m.mainMenuOpen && event.Kind == vivaui.PointerDown && event.Y >= 40 && event.Target == projectSwitcherDismiss {
 				m.mainMenuOpen = false
@@ -525,7 +528,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 			} else {
 				f.Row().Grow(1).Children(func() {
 					f.Row().Width(6)
-					f.Column().Width(m.split.Pos).MarginSides(6, 0, 6, 0).Radius(10).Background(theme.Background).Stroke(1, focusGlow(theme, projectTreeEventTarget(canvas.Focused()))).Children(func() {
+					f.Column().Width(m.split.Pos).MarginSides(6, 0, 6, 0).Radius(10).Background(theme.Background).Children(func() {
 						f.Row().Height(40).PadX(8).Gap(8).Items(flex.Center).Justify(flex.Between).Children(func() {
 							projectTitleBox = f.Row().Height(24).PadX(4).Gap(4).Items(flex.Center).Radius(4).Hover(flex.Look{}.Background(theme.Hover)).
 								HitWith(projectTitle, m.t("项目"), vivaui.HitOptions{Role: vivaui.RoleButton, Hint: m.t("项目视图"), Expanded: m.projectMenuOpen, Cursor: vivaui.PointerCursorHand})
@@ -539,25 +542,27 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 							if projectTitleBox.Clicked() {
 								m.projectMenuOpen = !m.projectMenuOpen
 							}
-							if tinyIconButton(f, projectExpandAll, m.t("展开全部"), expandAllGlyph, theme, true) {
-								m.expandAllProjects()
-							}
-							if tinyIconButton(f, projectCollapseAll, m.t("折叠全部"), collapseAllGlyph, theme, true) {
-								m.collapseAllProjects()
-							}
-							if tinyIconButton(f, projectLocate, m.t("选择打开的文件"), locateGlyph, theme, m.currentDocument() != nil) {
-								if doc := m.currentDocument(); doc != nil {
-									m.revealProjectEntry(doc.entryID)
+							f.Row().Gap(4).Items(flex.Center).Children(func() {
+								if tinyIconButton(f, projectExpandAll, m.t("展开全部"), expandAllGlyph, theme, true) {
+									m.expandAllProjects()
 								}
-							}
-							if tinyIconButton(f, projectSearch, m.t("显示筛选"), searchGlyph, theme, true) {
-								if m.filterOpen {
-									m.filterOpen = false
-									m.filterFocus = false
-								} else {
-									m.showProjectFilter()
+								if tinyIconButton(f, projectCollapseAll, m.t("折叠全部"), collapseAllGlyph, theme, true) {
+									m.collapseAllProjects()
 								}
-							}
+								if tinyIconButton(f, projectLocate, m.t("选择打开的文件"), locateGlyph, theme, m.currentDocument() != nil) {
+									if doc := m.currentDocument(); doc != nil {
+										m.revealProjectEntry(doc.entryID)
+									}
+								}
+								if tinyIconButton(f, projectSearch, m.t("显示筛选"), searchGlyph, theme, true) {
+									if m.filterOpen {
+										m.filterOpen = false
+										m.filterFocus = false
+									} else {
+										m.showProjectFilter()
+									}
+								}
+							})
 						})
 						if m.filterOpen {
 							f.Row().Height(34).PadSides(0, 8, 6, 8).Items(flex.Center).Children(func() {
@@ -568,7 +573,7 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 						projectTreeBox = m.paintProjectTree(f, theme, treeContentWidth, treeScrollX)
 					})
 					splitterSlot = f.Splitter(projectSplitter, &m.split).Width(6).Mins(180, 320)
-					f.Column().Grow(1).MarginSides(6, 6, 6, 0).Radius(10).Background(theme.Background).Stroke(1, focusGlow(theme, m.editorAreaFocused(canvas))).Children(func() {
+					f.Column().Grow(1).MarginSides(6, 6, 6, 0).Radius(10).Background(theme.Background).Children(func() {
 						sourcePanes, editorMenuPanes = m.paintEditorPanes(f, theme)
 					})
 				})
@@ -707,6 +712,9 @@ func (m *Model) paintProjectNode(f *flex.Frame, theme vivaui.Theme, visible arch
 	id := projectNodes.At(node.ID)
 	selected := node.Entry >= 0 && node.Entry == m.selected
 	selectedBackground := theme.Accent
+	if !m.focusProject {
+		selectedBackground = theme.Muted
+	}
 	hoverColor := treeHoverColor(m.Theme)
 	if selected {
 		hoverColor = selectedBackground
@@ -762,10 +770,6 @@ func (m *Model) activateNode(node archive.Node) {
 	case archive.NodeResource:
 		m.startResource(node.Entry)
 	}
-}
-
-func (m *Model) editorAreaFocused(canvas *vivaui.Canvas) bool {
-	return canvas.Focused() == sourceFind || m.paneForSource(canvas.Focused()) != nil
 }
 
 func projectTreeEventTarget(id vivaui.ID) bool {
