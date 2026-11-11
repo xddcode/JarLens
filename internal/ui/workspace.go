@@ -35,6 +35,7 @@ var (
 	projectTree                     = tree.ID(workbench, "project-tree")
 	projectFilter                   = tree.ID(workbench, "project-filter")
 	projectSearch                   = tree.ID(workbench, "project-search")
+	projectLocate                   = tree.ID(workbench, "project-locate")
 	projectTitle                    = tree.ID(workbench, "project-title")
 	projectMenu                     = tree.ID(workbench, "project-menu")
 	projectMenuDismiss              = tree.ID(workbench, "project-menu-dismiss")
@@ -532,6 +533,11 @@ func (m *Model) paint(canvas *vivaui.Canvas, size vivaui.Size) {
 							})
 							if projectTitleBox.Clicked() {
 								m.projectMenuOpen = !m.projectMenuOpen
+							}
+							if tinyIconButton(f, projectLocate, m.t("选择打开的文件"), locateGlyph, theme, m.currentDocument() != nil) {
+								if doc := m.currentDocument(); doc != nil {
+									m.revealProjectEntry(doc.entryID)
+								}
 							}
 							if tinyIconButton(f, projectSearch, m.t("显示筛选"), searchGlyph, theme, true) {
 								m.filterOpen = !m.filterOpen
