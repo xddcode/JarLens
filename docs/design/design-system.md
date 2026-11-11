@@ -225,9 +225,10 @@ Switching tabs does not move the tree selection or scroll position. The Select
 Open File action beside the project filter reveals the active document and expands
 its parents only when explicitly requested, centering the target row within the
 tree viewport when space permits. Expand All and Collapse All are icon buttons in
-the same right-aligned project action group. The focused tree or editor area uses
-a subtle primary-color stroke without changing its layout. Primary+F targets the
-focused tree or source area; Primary+Shift+F always opens the project filter. Comments, strings, and unresolved
+the same right-aligned project action group. The selected editor tab uses its
+bright focused color only while the source area has focus and a subdued color
+when the project tree has focus. Primary+F targets the focused tree or source
+area; Primary+Shift+F always opens the project filter. Comments, strings, and unresolved
 names are not links. XML syntax highlighting
 separates tag names, attribute names, quoted values, comments, declarations, and
 entities rather than coloring the entire angle-bracket block. Folding remains future work.

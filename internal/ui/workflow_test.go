@@ -253,6 +253,18 @@ func TestProjectTitleMenuControlsTree(t *testing.T) {
 	if !m.filterOpen || m.projectMenuOpen {
 		t.Fatal("project title menu did not open the filter and close")
 	}
+	previousRight := float32(0)
+	for _, id := range []ui.ID{projectExpandAll, projectCollapseAll, projectLocate, projectSearch} {
+		for _, hit := range driver.Snapshot().Hits {
+			if hit.ID != id {
+				continue
+			}
+			if previousRight > 0 && hit.Bounds.X-previousRight > 8 {
+				t.Fatalf("project actions are spread instead of grouped on the right: %+v", hit.Bounds)
+			}
+			previousRight = hit.Bounds.X + hit.Bounds.Width
+		}
+	}
 }
 
 func TestProjectFilter(t *testing.T) {
@@ -287,10 +299,10 @@ func TestProjectFilter(t *testing.T) {
 	}
 }
 
-func hasFocusGlow(driver *app.Driver, theme ui.Theme) bool {
-	color := focusGlow(theme, true)
+func hasTabColor(driver *app.Driver, appearance Appearance, focused bool) bool {
+	color, _, _ := editorTabColors(appearance, focused)
 	for _, primitive := range driver.Snapshot().Primitives {
-		if primitive.Color == color {
+		if primitive.Color == color && primitive.Radius > 0 {
 			return true
 		}
 	}
@@ -317,8 +329,14 @@ func TestSearchShortcutFollowsFocus(t *testing.T) {
 	if !m.filterOpen || m.findOpen {
 		t.Fatalf("Ctrl+F did not target the focused project tree: before=%v after=%v", focusedBefore, driver.Snapshot().Focused)
 	}
-	if !hasFocusGlow(driver, WorkspaceTheme(m.Theme)) {
-		t.Fatal("focused project tree does not show its subtle focus glow")
+	if !hasTabColor(driver, m.Theme, false) {
+		t.Fatal("active tab does not use its unfocused color when the project tree has focus")
+	}
+	if err := driver.Click(20, 500); err != nil {
+		t.Fatal(err)
+	}
+	if !m.focusProject {
+		t.Fatal("clicking blank project space did not move focus to the tree")
 	}
 	click(t, driver, sourceEditor)
 	if handled, err := driver.ShortcutChord(ui.ModifierControl, 'f'); err != nil || !handled {
@@ -327,8 +345,8 @@ func TestSearchShortcutFollowsFocus(t *testing.T) {
 	if !m.findOpen {
 		t.Fatal("Ctrl+F did not target the focused source editor")
 	}
-	if !hasFocusGlow(driver, WorkspaceTheme(m.Theme)) {
-		t.Fatal("focused source editor does not show its subtle focus glow")
+	if !hasTabColor(driver, m.Theme, true) {
+		t.Fatal("active tab does not use its focused color when the source editor has focus")
 	}
 }
 
