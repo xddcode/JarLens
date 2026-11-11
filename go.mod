@@ -1,6 +1,6 @@
 module github.com/xddcode/jarlens
 
-go 1.26.10
+go 1.26.11
 
 tool (
 	github.com/vivaui/viva/cmd/viva

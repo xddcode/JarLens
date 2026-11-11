@@ -3,15 +3,16 @@ package ui
 import "fmt"
 
 const (
-	languageChinese  = "zh-CN"
-	languageEnglish  = "en"
-	languageJapanese = "ja"
-	languageKorean   = "ko"
+	languageChinese            = "zh-CN"
+	languageTraditionalChinese = "zh-TW"
+	languageEnglish            = "en"
+	languageJapanese           = "ja"
+	languageKorean             = "ko"
 )
 
 var (
-	languageIDs   = []string{languageChinese, languageEnglish, languageJapanese, languageKorean}
-	languageNames = []string{"简体中文", "English", "日本語", "한국어"}
+	languageIDs   = []string{languageChinese, languageTraditionalChinese, languageEnglish, languageJapanese, languageKorean}
+	languageNames = []string{"简体中文", "繁體中文", "English", "日本語", "한국어"}
 )
 
 func languageIndex(language string) int {

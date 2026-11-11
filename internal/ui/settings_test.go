@@ -55,7 +55,7 @@ func TestSettingsDialogAppliesAndPersists(t *testing.T) {
 	click(t, driver, settingsNav.At(3))
 	m.settingsFontSize.SetText("16")
 	click(t, driver, settingsNav.At(5))
-	click(t, driver, settingsRestore)
+	click(t, driver, settingsStartup.At(1))
 	java, err := os.Executable()
 	if err != nil {
 		t.Fatal(err)
@@ -97,7 +97,7 @@ func TestSettingsEditorAndSystemPages(t *testing.T) {
 	}
 	click(t, driver, settingsCurrentLine)
 	click(t, driver, settingsNav.At(5))
-	click(t, driver, settingsRestore)
+	click(t, driver, settingsStartup.At(1))
 	click(t, driver, settingsApply)
 	if !m.settingsOpen || store.saves != 1 {
 		t.Fatal("Apply did not save settings while keeping the dialog open")
@@ -461,5 +461,100 @@ func TestSettingsReopensLastPage(t *testing.T) {
 	openSettingsForTest(t, driver)
 	if m.settingsCategory != 4 {
 		t.Fatalf("settings reopened page %d, want editor general", m.settingsCategory)
+	}
+}
+
+func TestSettingsStartupTrayAndLoginPersist(t *testing.T) {
+	store := &memorySettingsStore{settings: jarlensworkspace.DefaultSettings()}
+	var launchValues []bool
+	m := &Model{
+		SettingsStore: store,
+		SetLaunchAtLogin: func(enabled bool) error {
+			launchValues = append(launchValues, enabled)
+			return nil
+		},
+	}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	openSettingsForTest(t, driver)
+	click(t, driver, settingsNav.At(5))
+	click(t, driver, settingsStartup.At(1))
+	click(t, driver, settingsCloseToTray)
+	click(t, driver, settingsLaunchAtLogin)
+	click(t, driver, settingsReset)
+	if m.settingsDraft != jarlensworkspace.DefaultSettings() {
+		t.Fatalf("reset did not restore the startup settings: %+v", m.settingsDraft)
+	}
+	click(t, driver, settingsStartup.At(1))
+	click(t, driver, settingsCloseToTray)
+	click(t, driver, settingsLaunchAtLogin)
+	click(t, driver, settingsApply)
+	if m.settings.RestoreLastProject || !m.settings.CloseToTray || !m.settings.LaunchAtLogin {
+		t.Fatalf("startup settings were not applied: %+v", m.settings)
+	}
+	if store.saves != 1 || store.settings != m.settings || len(launchValues) != 1 || !launchValues[0] {
+		t.Fatalf("startup settings were not persisted: saves=%d launch=%v", store.saves, launchValues)
+	}
+	click(t, driver, settingsApply)
+	if len(launchValues) != 1 {
+		t.Fatal("saving unrelated settings rewrote the login item")
+	}
+}
+
+func TestSettingsLoginItemFailureDoesNotSave(t *testing.T) {
+	store := &memorySettingsStore{settings: jarlensworkspace.DefaultSettings()}
+	m := &Model{
+		SettingsStore: store,
+		SetLaunchAtLogin: func(enabled bool) error {
+			if !enabled {
+				t.Fatal("unexpected login item state")
+			}
+			return os.ErrPermission
+		},
+	}
+	driver := newDriver(t, m)
+	defer driver.Close()
+	openSettingsForTest(t, driver)
+	click(t, driver, settingsNav.At(5))
+	click(t, driver, settingsLaunchAtLogin)
+	click(t, driver, settingsConfirm)
+	if !m.settingsOpen || m.settings.LaunchAtLogin || store.saves != 0 || !m.settingsDirty() {
+		t.Fatalf("failed login item update was saved: %+v", m.settings)
+	}
+	if !shows(driver, "无法设置开机自动启动") {
+		t.Fatal("login item failure was not shown in the settings dialog")
+	}
+}
+
+func TestCloseRequestHonorsTrayPreference(t *testing.T) {
+	tests := []struct {
+		name          string
+		closeToTray   bool
+		trayAvailable bool
+		wantAllowed   bool
+		wantHidden    bool
+	}{
+		{name: "close directly", wantAllowed: true},
+		{name: "hide to tray", closeToTray: true, trayAvailable: true, wantHidden: true},
+		{name: "close when tray unavailable", closeToTray: true, wantAllowed: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ensured, hidden, allowed := false, false, false
+			m := &Model{
+				EnsureTray: func() bool {
+					ensured = true
+					return test.trayAvailable
+				},
+				HideWindow: func() { hidden = true },
+			}
+			config := NewConfig(m)
+			defer m.close()
+			m.settings.CloseToTray = test.closeToTray
+			config.OnCloseRequest(func() { allowed = true })
+			if ensured != test.closeToTray || hidden != test.wantHidden || allowed != test.wantAllowed {
+				t.Fatalf("close behavior: ensured=%v hidden=%v allowed=%v", ensured, hidden, allowed)
+			}
+		})
 	}
 }

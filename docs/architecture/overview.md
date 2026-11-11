@@ -38,10 +38,10 @@ architectural scaffolding is not a goal.
 
 ## Localization
 
-`internal/ui` owns the shared Simplified Chinese, English, Japanese, and Korean
-catalog and resolves interface text when painting. `internal/workspace` persists
-only the selected language identifier. Source code, archive contents, and release
-notes are not translated.
+`internal/ui` owns the shared Simplified Chinese, Traditional Chinese, English,
+Japanese, and Korean catalog and resolves interface text when painting.
+`internal/workspace` persists only the selected language identifier. Source code,
+archive contents, and release notes are not translated.
 
 ## Execution model
 

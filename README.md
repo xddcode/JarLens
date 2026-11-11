@@ -3,7 +3,7 @@
 [![CI](https://github.com/xddcode/jarlens/actions/workflows/ci.yml/badge.svg)](https://github.com/xddcode/jarlens/actions/workflows/ci.yml)
 [![Integration](https://github.com/xddcode/jarlens/actions/workflows/integration.yml/badge.svg)](https://github.com/xddcode/jarlens/actions/workflows/integration.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/Go-1.26.10%2B-00ADD8.svg)](go.mod)
+[![Go](https://img.shields.io/badge/Go-1.26.11%2B-00ADD8.svg)](go.mod)
 
 **English | [简体中文](README.zh-CN.md)**
 
@@ -23,7 +23,7 @@ Users are responsible for ensuring they have the legal right to inspect the rele
 
 - Native desktop rendering without Electron, a browser engine, or an embedded WebView.
 - An OpenIDEA/IntelliJ-style workbench with working Islands Dark and Islands Light themes.
-- Simplified Chinese, English, Japanese, and Korean interface languages with a persistent language selector.
+- Simplified Chinese, Traditional Chinese, English, Japanese, and Korean interface languages with a persistent language selector.
 - A code-first workspace designed for reading, searching, and comparing decompiled Java.
 - Replaceable decompiler engine adapters rather than a UI tied to one engine.
 - Reproducible development, testing, and releases driven entirely through GitHub.
@@ -38,7 +38,7 @@ architecture-specific assets are published through GitHub Releases.
 
 ## Build from source
 
-Requirements: Go 1.26.10 or newer, a platform supported by Viva, and a Java 11+ runtime available as `java` for decompilation.
+Requirements: Go 1.26.11 or newer, a platform supported by Viva, and a Java 11+ runtime available as `java` for decompilation.
 
 ```sh
 git clone https://github.com/xddcode/jarlens.git
@@ -74,6 +74,7 @@ go tool viva build
 | Multiple document tabs and current source export | Available |
 | XML, JSON, YAML, Manifest, and other UTF-8/UTF-16 text resources | Available |
 | Project filter, source find, and go to line | Available |
+| Startup restoration, close-to-tray, and per-user launch-at-login preferences | Available |
 | Headless UI and real JDK integration tests | Available |
 | Global index, cache, and multi-engine diff | Planned |
 | Managed Java runtime in standard packages | Available |
@@ -98,7 +99,7 @@ JarLens 正在积极开发，尚未发布正式版本。当前源码已支持打
 
 ### 本地运行
 
-环境要求：Go 1.26.10 或更高版本、Viva 支持的操作系统，以及可通过 `java` 命令访问的 Java 11+ 运行时。
+环境要求：Go 1.26.11 或更高版本、Viva 支持的操作系统，以及可通过 `java` 命令访问的 Java 11+ 运行时。
 
 ```sh
 git clone https://github.com/xddcode/jarlens.git

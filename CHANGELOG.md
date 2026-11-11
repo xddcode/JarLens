@@ -6,6 +6,15 @@ All notable changes to JarLens are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Traditional Chinese interface localization alongside the existing four languages.
+- Configurable startup restoration, close-to-tray behavior, and per-user launch-at-login integration for Windows, macOS, and Linux.
+
+### Changed
+
+- Require Go 1.26.11 or newer to include the standard-library fix for GO-2026-6859.
+
 ## [0.1.0] - 2026-11-10
 
 ### Added
