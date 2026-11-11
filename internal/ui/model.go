@@ -488,14 +488,8 @@ func (m *Model) revealProjectEntry(entryID int) {
 		top := float32(index) * 24
 		offset := top
 		if state.Viewport > 0 {
-			switch {
-			case top < state.Offset:
-				offset = top
-			case top+24 > state.Offset+state.Viewport:
-				offset = top + 24 - state.Viewport
-			default:
-				return
-			}
+			maxScroll := max(float32(len(visible))*24-state.Viewport, 0)
+			offset = min(top+12-state.Viewport/2, maxScroll)
 		}
 		state.ScrollTo(max(0, offset))
 		return

@@ -223,7 +223,8 @@ Source find highlights its matches. Resolvable class names in Java and
 class, selects its declaration, and reveals the target in the project tree.
 Switching tabs does not move the tree selection or scroll position. The Select
 Open File action beside the project filter reveals the active document and expands
-its parents only when explicitly requested. Comments, strings, and unresolved
+its parents only when explicitly requested, centering the target row within the
+tree viewport when space permits. Comments, strings, and unresolved
 names are not links. XML syntax highlighting
 separates tag names, attribute names, quoted values, comments, declarations, and
 entities rather than coloring the entire angle-bracket block. Folding remains future work.

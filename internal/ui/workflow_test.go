@@ -1001,8 +1001,14 @@ func TestOpeningDocumentScrollsProjectTreeIntoView(t *testing.T) {
 	if !m.expanded[m.workspace.Tree.Nodes[findNodeID(t, m, "Class39.class")].Parent] {
 		t.Fatal("opening a document did not expand its package")
 	}
-	if offset := m.view.ScrollState(projectTree).Offset; offset <= 0 {
-		t.Fatalf("opening an offscreen document did not scroll the tree: %v", offset)
+	state := m.view.ScrollState(projectTree)
+	if state.Offset <= 0 {
+		t.Fatalf("opening an offscreen document did not scroll the tree: %v", state.Offset)
+	}
+	lastIndex := len(m.workspace.Tree.Visible(m.expanded)) - 1
+	want := max(float32(0), min(float32(lastIndex)*24+12-state.Viewport/2, state.Max()))
+	if state.Offset != want {
+		t.Fatalf("located row is not centered: offset=%v want=%v", state.Offset, want)
 	}
 }
 
