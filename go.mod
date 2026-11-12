@@ -10,7 +10,7 @@ tool (
 
 require (
 	github.com/vivaui/viva v0.5.1
-	golang.org/x/sys v0.49.0
+	golang.org/x/sys v0.50.0
 )
 
 require (
